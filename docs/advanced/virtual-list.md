@@ -7,7 +7,7 @@
 ```vue
 <script setup lang="ts">
 import { ref } from 'wevu'
-import ZPagingWevu, { createPagingController } from 'z-paging-wevu'
+import { createPagingController } from 'z-paging-wevu/controller'
 
 const items = ref<Record<string, unknown>[]>([])
 const renderItems = ref<Record<string, unknown>[]>([])

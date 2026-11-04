@@ -4,9 +4,11 @@
 
 ## 替换组件与控制器
 
+先按[安装与快速开始](./getting-started#配置-sfc-解析器)注册 `ZPagingWevuResolver()`。之后模板会自动识别 `<ZPagingWevu>`，页面脚本只需导入控制器：
+
 ```diff
 - import ZPaging from 'z-paging'
-+ import ZPagingWevu, { createPagingController } from 'z-paging-wevu'
++ import { createPagingController } from 'z-paging-wevu/controller'
 
 + const paging = createPagingController()
 ```

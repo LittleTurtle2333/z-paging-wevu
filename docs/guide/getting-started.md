@@ -8,20 +8,46 @@
 
 ## 安装
 
-作为依赖发布后，可通过 pnpm 安装：
-
 ```bash
 pnpm add z-paging-wevu wevu
 ```
 
 在本仓库中开发时，也可以使用 pnpm workspace 或 `file:` 依赖。若不希望通过包管理器接入，可直接复制 `src/components/z-paging-wevu/` 到业务项目组件目录。
 
+## 配置 SFC 解析器
+
+在 `weapp-vite.config.ts` 中注册组件解析器，让 npm 包里的 Vue SFC 进入 wevu 模板编译链路：
+
+```ts
+import { defineConfig } from 'weapp-vite'
+import { ZPagingWevuResolver } from 'z-paging-wevu/resolver'
+
+export default defineConfig({
+  weapp: {
+    autoImportComponents: {
+      resolvers: [ZPagingWevuResolver()],
+      vueComponents: true,
+      vueComponentsModule: 'wevu',
+    },
+    uniApp: {
+      include: ['z-paging-wevu'],
+    },
+  },
+})
+```
+
+::: warning 不要加入普通 npm 打包白名单
+不要把 `z-paging-wevu` 加入 `weapp.npm.include`。该入口面向普通 JavaScript 依赖，会把 `.vue` 当作脚本解析并导致 `Unexpected JSX expression`。
+:::
+
+配置后，模板中的 `<ZPagingWevu>` 会自动解析，不需要在页面脚本中导入组件。
+
 ## 最小示例
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'wevu'
-import ZPagingWevu, { createPagingController } from 'z-paging-wevu'
+import { createPagingController } from 'z-paging-wevu/controller'
 
 interface Item {
   id: number

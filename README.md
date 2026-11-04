@@ -2,7 +2,7 @@
 
 面向 **weapp-vite + wevu + Vue SFC** 的 z-paging 兼容实现。保留 z-paging 的分页心智模型，同时针对微信小程序运行时处理事件参数、虚拟列表和布局差异。
 
-> 当前版本为 0.1.0，目标是微信小程序；nvue 专属渲染仅保留兼容入口。
+> 当前版本为 0.1.1，目标是微信小程序；nvue 专属渲染仅保留兼容入口。
 
 ## 能力
 
@@ -20,14 +20,34 @@
 pnpm add z-paging-wevu wevu
 ```
 
-也可以直接将 `src/components/z-paging-wevu/` 复制到项目的组件目录。
+在 `weapp-vite.config.ts` 中注册随包提供的 SFC 解析器：
+
+```ts
+import { defineConfig } from 'weapp-vite'
+import { ZPagingWevuResolver } from 'z-paging-wevu/resolver'
+
+export default defineConfig({
+  weapp: {
+    autoImportComponents: {
+      resolvers: [ZPagingWevuResolver()],
+      vueComponents: true,
+      vueComponentsModule: 'wevu',
+    },
+    uniApp: {
+      include: ['z-paging-wevu'],
+    },
+  },
+})
+```
+
+不要把 `z-paging-wevu` 加入 `weapp.npm.include`，否则原始 Vue SFC 会被交给普通 JavaScript 打包器。也可以直接将 `src/components/z-paging-wevu/` 复制到项目的组件目录。
 
 ## 快速开始
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'wevu'
-import ZPagingWevu, { createPagingController } from 'z-paging-wevu'
+import { createPagingController } from 'z-paging-wevu/controller'
 
 const items = ref<Record<string, unknown>[]>([])
 const paging = createPagingController()

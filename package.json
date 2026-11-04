@@ -1,6 +1,6 @@
 {
   "name": "z-paging-wevu",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "type": "module",
   "license": "MIT",
@@ -37,10 +37,16 @@
     "./props": {
       "types": "./src/components/z-paging-wevu/props.ts",
       "default": "./src/components/z-paging-wevu/props.ts"
+    },
+    "./resolver": {
+      "types": "./resolver.d.ts",
+      "default": "./resolver.mjs"
     }
   },
   "files": [
     "src",
+    "resolver.mjs",
+    "resolver.d.ts",
     "README.md",
     "LICENSE"
   ],

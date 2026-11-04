@@ -3,7 +3,7 @@
 通过控制器调用公开方法：
 
 ```ts
-import { createPagingController } from 'z-paging-wevu'
+import { createPagingController } from 'z-paging-wevu/controller'
 
 const paging = createPagingController()
 ```
