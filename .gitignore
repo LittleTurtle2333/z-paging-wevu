@@ -1,0 +1,9 @@
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+dist/
+.weapp-vite/
+.DS_Store
+*.log
+.tmp/
+coverage/

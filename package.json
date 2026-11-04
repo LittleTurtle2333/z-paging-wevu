@@ -1,0 +1,78 @@
+{
+  "name": "z-paging-wevu",
+  "version": "0.1.0",
+  "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
+  "type": "module",
+  "license": "MIT",
+  "author": "littleturtle2333",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleTurtle2333/z-paging-wevu.git"
+  },
+  "homepage": "https://littleturtle2333.github.io/z-paging-wevu/",
+  "bugs": {
+    "url": "https://github.com/LittleTurtle2333/z-paging-wevu/issues"
+  },
+  "keywords": [
+    "z-paging",
+    "weapp-vite",
+    "wevu",
+    "miniprogram",
+    "pagination",
+    "virtual-list"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./component": "./src/components/z-paging-wevu/index.vue",
+    "./controller": {
+      "types": "./src/components/z-paging-wevu/types.ts",
+      "default": "./src/components/z-paging-wevu/types.ts"
+    },
+    "./props": {
+      "types": "./src/components/z-paging-wevu/props.ts",
+      "default": "./src/components/z-paging-wevu/props.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.vue",
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "dev:docs": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "test:docs": "node scripts/verify-docs.mjs",
+    "build": "pnpm typecheck && pnpm docs:build"
+  },
+  "peerDependencies": {
+    "wevu": ">=7.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "miniprogram-api-typings": "^5.2.3",
+    "playwright": "^1.64.1",
+    "typescript": "^6.0.3",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.13",
+    "vue-tsc": "^3.3.12",
+    "wevu": "^7.5.0"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@11.20.0"
+}
