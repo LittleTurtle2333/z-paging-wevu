@@ -1,13 +1,20 @@
+export type ZPagingWevuComponentName
+  = 'ZPagingWevu' | 'ZPagingSwiper' | 'ZPagingSwiperItem' | 'ZPagingEmptyView' | 'ZPagingCell'
+
+export type ZPagingWevuComponentEntry
+  = 'z-paging-wevu/component' | 'z-paging-wevu/swiper' | 'z-paging-wevu/swiper-item'
+    | 'z-paging-wevu/empty-view' | 'z-paging-wevu/cell'
+
 export interface ZPagingWevuResolveResult {
-  name: 'ZPagingWevu'
-  from: 'z-paging-wevu/component'
-  resolvedId: 'z-paging-wevu/component'
+  name: ZPagingWevuComponentName
+  from: ZPagingWevuComponentEntry
+  resolvedId: ZPagingWevuComponentEntry
   sourceType: 'wevu-sfc'
   typeImport: false
 }
 
 export interface ZPagingWevuResolver {
-  components: Readonly<Record<'ZPagingWevu', 'z-paging-wevu/component'>>
+  components: Readonly<Record<ZPagingWevuComponentName, ZPagingWevuComponentEntry>>
   resolve: (name: string) => ZPagingWevuResolveResult | undefined
 }
 

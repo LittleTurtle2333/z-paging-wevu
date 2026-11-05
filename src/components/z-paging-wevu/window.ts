@@ -2,6 +2,7 @@ export interface ZPagingWevuWindowMetrics {
   statusBarHeight: number
   windowWidth: number
   windowHeight: number
+  safeAreaInsetBottom: number
 }
 
 function positive(value: unknown, fallback = 0): number {
@@ -29,10 +30,13 @@ export function getWindowMetrics(): ZPagingWevuWindowMetrics {
 
   const windowWidth = positive(info?.windowWidth, positive(info?.screenWidth, 375))
   const windowHeight = positive(info?.windowHeight, positive(info?.screenHeight, 667))
+  const screenHeight = positive(info?.screenHeight, windowHeight)
+  const safeAreaInsetBottom = positive(screenHeight - Number(info?.safeArea?.bottom ?? screenHeight))
   cachedMetrics = {
     statusBarHeight: positive(info?.statusBarHeight),
     windowWidth,
     windowHeight,
+    safeAreaInsetBottom,
   }
   return cachedMetrics
 }

@@ -1,6 +1,6 @@
 {
   "name": "z-paging-wevu",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "type": "module",
   "license": "MIT",
@@ -30,6 +30,10 @@
       "default": "./src/index.ts"
     },
     "./component": "./src/components/z-paging-wevu/index.vue",
+    "./swiper": "./src/components/z-paging-swiper/index.vue",
+    "./swiper-item": "./src/components/z-paging-swiper-item/index.vue",
+    "./empty-view": "./src/components/z-paging-empty-view/index.vue",
+    "./cell": "./src/components/z-paging-cell/index.vue",
     "./controller": {
       "types": "./src/components/z-paging-wevu/types.ts",
       "default": "./src/components/z-paging-wevu/types.ts"

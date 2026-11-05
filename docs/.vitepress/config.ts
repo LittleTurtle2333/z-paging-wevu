@@ -65,6 +65,7 @@ export default defineConfig({
             { text: 'Methods', link: '/api/methods' },
             { text: 'Events', link: '/api/events' },
             { text: 'Slots', link: '/api/slots' },
+            { text: '公用子组件', link: '/api/sub-components' },
           ],
         },
       ],

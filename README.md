@@ -2,7 +2,7 @@
 
 面向 **weapp-vite + wevu + Vue SFC** 的 z-paging 兼容实现。保留 z-paging 的分页心智模型，同时针对微信小程序运行时处理事件参数、虚拟列表和布局差异。
 
-> 当前版本为 0.1.1，目标是微信小程序；nvue 专属渲染仅保留兼容入口。
+> 当前版本为 0.2.0，目标是微信小程序；nvue 专属渲染仅保留兼容入口。
 
 ## 能力
 
@@ -13,6 +13,7 @@
 - 固定和动态高度虚拟列表、聊天记录模式、键盘适配
 - 自定义下拉刷新、二楼 F2、返回顶部、国际化文本
 - TypeScript 类型与 `createPagingController()` 控制器
+- `ZPagingSwiper` / `ZPagingSwiperItem` / `ZPagingEmptyView` / `ZPagingCell` 公用子组件
 
 ## 安装
 
