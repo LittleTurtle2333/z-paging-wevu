@@ -329,6 +329,20 @@ const refresherText = computed(() => {
 /** 原生下拉刷新模式下的自绘文案层高度，与原生触发阈值对齐。 */
 const refresherHintHeight = computed(() => vpPx(props.refresherThreshold, 40))
 
+/**
+ * 默认箭头图（与 z-paging 一致的素材）：基准朝上，
+ * `default` 状态旋转 180deg 朝下，`release-to-refresh` 回到 0deg，
+ * 由 `transition: transform` 做平滑翻转。
+ */
+const REFRESHER_ARROW_SRC = {
+  black: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIhnAAAAD1BMVEVHcExRUVFMTExRUVFRUVE9CdWsAAAABHRSTlMAjjrY9ZnUjwAAAQFJREFUWMPt2MsNgzAMgGEEE1B1gKJmAIRYoCH7z9RCXrabh33iYktcIv35EEg5ZBh07pvxJU6MFSPOSRnjnBUjUsaciRUjMsb4xIoRCWNiYsUInzE5sWKEyxiYWDbyefqHx1zIeiYTk7mQYziTYecxHvEJjwmIT3hMQELCYSISEg4TkZj0mYTEpM8kJCU9JiMp6TEZyUmbAUhO2gxAQNJiIAKSFgMRmNQZhMCkziAEJTUGIyipMRjBSZkhCE7KDEFIUmTeGCHJxWz0zXaE0GTCG8ZFtEaS347r/1fe11YyHYVfubxayfjoHmc0YYwmmmiiiSaaaKLJ7ckyz5ve+dw3Xw2emdwm9xSbAAAAAElFTkSuQmCC',
+  white: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIhnAAAAElBMVEVHcEz///////////////////+IGTx/AAAABnRSTlMA/dAkXZOhASU/AAABYElEQVRYw+2YwXLCIBCGsdAHWGbyAKZ4zxi9O017rxLf/1UaWFAgA1m8dcpedNSPf/l/Vh0Ya/Wn6hN0JcGvoCqRM4C8VBFiDwBqqNuJKV0rAnCgy3AUqZE57x0iqTL8Br4U3WBf/YWaIlTKfAcELU/h9w72CSVPa3C3OCDvhpHbRp/s2vq4fHhCeiCl2A3m4Qd71DQR257mFBlMcTlbFnFWzNtHxewYEfSiaLS4el8d8nyhmKJd1CF4eOS0keLMAuSxubLBIeIGQW8YHCFFo7EH9+YDcQt9FMZEswTheaNxTHwHT8SZorJjMrEVwo4Zo0U8HSEyZvJMOg4RjnmmRr8nDYeIz3OMkbfE/QhBo+U9RnZJxjGCRh/WKmHEMWLNkfPKsGh/CWJk1JjG0kcuJggTt34VDP8aWAFhp4nybVb5+9qQhjSkIQ1pSEMa8k+Q5U9rV3dF8MpFBK+/7miVq1/HZ2qmo9D+pAAAAABJRU5ErkJggg==',
+} as const
+
+const refresherArrowSrc = computed(
+  () => REFRESHER_ARROW_SRC[props.refresherThemeStyle === 'white' ? 'white' : 'black'],
+)
+
 const refresherImage = computed(() => {
   const map = {
     'default': props.refresherDefaultImg,
@@ -1215,9 +1229,12 @@ onUnmounted(() => {
                 class="z-paging-wevu__refresher-spinner"
                 :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
               />
-              <text v-else class="z-paging-wevu__refresher-arrow">
-                {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
-              </text>
+              <image
+                v-else
+                class="z-paging-wevu__refresher-arrow"
+                :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+                :src="refresherArrowSrc"
+              />
               <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
             </view>
 
@@ -1240,13 +1257,13 @@ onUnmounted(() => {
                 </text>
               </slot>
               <slot v-else name="refresher" :refresher-status="refresherStatus">
-                <text
+                <image
                   v-if="!refresherImage && refresherStatus !== 'loading'"
                   class="z-paging-wevu__refresher-arrow"
+                  :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+                  :src="refresherArrowSrc"
                   :style="refresherImgStyle"
-                >
-                  {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
-                </text>
+                />
                 <view
                   v-else-if="!refresherImage && refresherStatus === 'loading'"
                   class="z-paging-wevu__refresher-spinner"
@@ -1458,9 +1475,12 @@ onUnmounted(() => {
               class="z-paging-wevu__refresher-spinner"
               :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
             />
-            <text v-else class="z-paging-wevu__refresher-arrow">
-              {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
-            </text>
+            <image
+              v-else
+              class="z-paging-wevu__refresher-arrow"
+              :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+              :src="refresherArrowSrc"
+            />
             <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
           </view>
 
@@ -1483,13 +1503,13 @@ onUnmounted(() => {
               </text>
             </slot>
             <slot v-else name="refresher" :refresher-status="refresherStatus">
-              <text
+              <image
                 v-if="!refresherImage && refresherStatus !== 'loading'"
                 class="z-paging-wevu__refresher-arrow"
+                :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+                :src="refresherArrowSrc"
                 :style="refresherImgStyle"
-              >
-                {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
-              </text>
+              />
               <view
                 v-else-if="!refresherImage && refresherStatus === 'loading'"
                 class="z-paging-wevu__refresher-spinner"
@@ -1795,15 +1815,19 @@ onUnmounted(() => {
   animation: z-paging-wevu-rotate 1s linear infinite;
 }
 .z-paging-wevu__refresher-arrow {
-  margin-right: 12rpx;
-  color: #8a8f98;
-  font-size: 36rpx;
-  line-height: 1;
+  width: 34rpx;
+  height: 34rpx;
+  margin-right: 9rpx;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease-out;
+}
+.z-paging-wevu__refresher-arrow--down {
+  transform: rotate(180deg);
 }
 .z-paging-wevu__refresher-spinner {
-  width: 28rpx;
-  height: 28rpx;
-  margin-right: 12rpx;
+  width: 30rpx;
+  height: 30rpx;
+  margin-right: 9rpx;
   border: 3rpx solid #d0d6e0;
   border-top-color: #8a8f98;
   border-radius: 50%;
@@ -1814,7 +1838,7 @@ onUnmounted(() => {
 .z-paging-wevu__refresher-text,
 .z-paging-wevu__refresher-time {
   color: #8a8f98;
-  font-size: 24rpx;
+  font-size: 30rpx;
 }
 .z-paging-wevu__refresher-time {
   flex-basis: 100%;
