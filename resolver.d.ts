@@ -10,7 +10,7 @@ export interface ZPagingWevuResolveResult {
   from: ZPagingWevuComponentEntry
   resolvedId: ZPagingWevuComponentEntry
   sourceType: 'wevu-sfc'
-  typeImport: false
+  typeImport: true
 }
 
 export interface ZPagingWevuResolver {

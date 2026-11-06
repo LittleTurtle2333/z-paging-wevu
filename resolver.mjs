@@ -20,7 +20,7 @@ export function ZPagingWevuResolver() {
         from: componentEntry,
         resolvedId: componentEntry,
         sourceType: 'wevu-sfc',
-        typeImport: false,
+        typeImport: true,
       }
     },
   }

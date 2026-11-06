@@ -2,12 +2,13 @@
 
 ## 页面滚动模式
 
-默认 `fixed=false`，组件内容跟随页面滚动，适合普通列表页。
+设置 `fixed=false` 和 `use-page-scroll=true`，组件内容跟随页面滚动，适合普通列表页。组件默认 `fixed=true`，与 uni-app 版 z-paging 的整屏行为保持一致。
 
 ```vue
 <ZPagingWevu
   v-model="items"
   :controller="paging"
+  :fixed="false"
   :use-page-scroll="true"
   :fixed-top="navbarHeight"
   @query="queryList"

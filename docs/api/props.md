@@ -40,7 +40,7 @@ type ZPagingWevuFetch = (params: {
 
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `fixed` | `boolean` | `false` | 使用整屏 `scroll-view` |
+| `fixed` | `boolean` | `true` | 使用整屏 `scroll-view`，与 uni-app 版默认行为一致 |
 | `usePageScroll` | `boolean` | `false` | 使用页面滚动 |
 | `layoutOnly` | `boolean` | `false` | 只保留布局，关闭自动分页交互 |
 | `fixedTop` | `number` | `0` | 顶部固定区域高度，px |
@@ -121,7 +121,7 @@ type ZPagingWevuFetch = (params: {
 | `insideMore` | `boolean` | `false` | 加载更多放入列表内部 |
 | `loadingMoreDefaultAsLoading` | `boolean` | `false` | 默认状态按加载中展示 |
 | `showDefaultLoadingMoreText` | `boolean` | `true` | 显示默认加载文本 |
-| `showLoadingMoreNoMoreLine` | `boolean` | `true` | 显示无更多分隔线 |
+| `showLoadingMoreNoMoreLine` | `boolean` | `true` | 在“没有更多了”文字两侧显示对称分隔线 |
 | `loadingMoreCustomStyle` | `ZPagingWevuStyle` | — | 容器样式 |
 | `loadingMoreTitleCustomStyle` | `ZPagingWevuStyle` | — | 文本样式 |
 | `loadingMoreLoadingIconCustomStyle` | `ZPagingWevuStyle` | — | 加载图标样式 |

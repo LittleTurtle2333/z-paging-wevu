@@ -32,7 +32,7 @@ import {
 const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   modelValue: () => [],
   auto: true,
-  fixed: false,
+  fixed: true,
   usePageScroll: false,
   layoutOnly: false,
   fixedTop: 0,
@@ -1365,6 +1365,11 @@ onUnmounted(() => {
                   >
                     {{ loadingMoreText }}
                   </text>
+                  <view
+                    v-if="showLoadingMoreNoMoreLine"
+                    class="z-paging-wevu__no-more-line z-paging-wevu__no-more-line--right"
+                    :style="loadingMoreNoMoreLineCustomStyle"
+                  />
                 </slot>
                 <slot v-else name="loadingMoreDefault">
                   <text
@@ -1535,12 +1540,22 @@ onUnmounted(() => {
                 </text>
               </slot>
               <slot v-else-if="noMore" name="loadingMoreNoMore">
+                <view
+                  v-if="showLoadingMoreNoMoreLine"
+                  class="z-paging-wevu__no-more-line"
+                  :style="loadingMoreNoMoreLineCustomStyle"
+                />
                 <text
                   class="z-paging-wevu__more-text"
                   :style="loadingMoreTitleCustomStyle"
                 >
                   {{ loadingMoreText }}
                 </text>
+                <view
+                  v-if="showLoadingMoreNoMoreLine"
+                  class="z-paging-wevu__no-more-line z-paging-wevu__no-more-line--right"
+                  :style="loadingMoreNoMoreLineCustomStyle"
+                />
               </slot>
               <slot v-else name="loadingMoreDefault">
                 <text
@@ -1662,7 +1677,11 @@ onUnmounted(() => {
 }
 .z-paging-wevu__content {
   position: relative;
+  box-sizing: border-box;
   min-height: 1px;
+}
+.z-paging-wevu--fixed .z-paging-wevu__content {
+  min-height: 100%;
 }
 .z-paging-wevu--chat .z-paging-wevu__content {
   transform: scaleY(-1);
@@ -1748,6 +1767,10 @@ onUnmounted(() => {
   height: 1rpx;
   margin-right: 20rpx;
   background: #d0d6e0;
+}
+.z-paging-wevu__no-more-line--right {
+  margin-right: 0;
+  margin-left: 20rpx;
 }
 .z-paging-wevu__back-to-top {
   position: fixed;
