@@ -1202,6 +1202,19 @@ onUnmounted(() => {
                 </text>
               </slot>
               <slot v-else name="refresher" :refresher-status="refresherStatus">
+                <text
+                  v-if="!refresherImage && refresherStatus !== 'loading'"
+                  class="z-paging-wevu__refresher-arrow"
+                  :style="refresherImgStyle"
+                >
+                  {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
+                </text>
+                <view
+                  v-else-if="!refresherImage && refresherStatus === 'loading'"
+                  class="z-paging-wevu__refresher-spinner"
+                  :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+                  :style="refresherImgStyle"
+                />
                 <image
                   v-if="refresherImage"
                   class="z-paging-wevu__refresher-img"
@@ -1412,6 +1425,19 @@ onUnmounted(() => {
               </text>
             </slot>
             <slot v-else name="refresher" :refresher-status="refresherStatus">
+              <text
+                v-if="!refresherImage && refresherStatus !== 'loading'"
+                class="z-paging-wevu__refresher-arrow"
+                :style="refresherImgStyle"
+              >
+                {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
+              </text>
+              <view
+                v-else-if="!refresherImage && refresherStatus === 'loading'"
+                class="z-paging-wevu__refresher-spinner"
+                :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+                :style="refresherImgStyle"
+              />
               <image
                 v-if="refresherImage"
                 class="z-paging-wevu__refresher-img"
@@ -1689,7 +1715,8 @@ onUnmounted(() => {
 .z-paging-wevu__refresher {
   display: flex;
   overflow: hidden;
-  flex-direction: column;
+  flex-wrap: wrap;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   transition-property: height;
@@ -1698,9 +1725,27 @@ onUnmounted(() => {
 .z-paging-wevu__refresher-img {
   width: 40rpx;
   height: 40rpx;
+  margin-right: 12rpx;
 }
 .z-paging-wevu__refresher-img--animated {
   animation: z-paging-wevu-rotate 1s linear infinite;
+}
+.z-paging-wevu__refresher-arrow {
+  margin-right: 12rpx;
+  color: #8a8f98;
+  font-size: 36rpx;
+  line-height: 1;
+}
+.z-paging-wevu__refresher-spinner {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 12rpx;
+  border: 3rpx solid #d0d6e0;
+  border-top-color: #8a8f98;
+  border-radius: 50%;
+}
+.z-paging-wevu__refresher-spinner--animated {
+  animation: z-paging-wevu-rotate 0.8s linear infinite;
 }
 .z-paging-wevu__refresher-text,
 .z-paging-wevu__refresher-time {
@@ -1708,8 +1753,10 @@ onUnmounted(() => {
   font-size: 24rpx;
 }
 .z-paging-wevu__refresher-time {
+  flex-basis: 100%;
   margin-top: 6rpx;
   font-size: 20rpx;
+  text-align: center;
 }
 .z-paging-wevu__loading,
 .z-paging-wevu__empty {

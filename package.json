@@ -1,6 +1,6 @@
 {
   "name": "z-paging-wevu",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "type": "module",
   "license": "MIT",

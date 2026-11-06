@@ -91,6 +91,8 @@ paging.updateCustomRefresherHeight()
 
 通常在自定义异步流程结束时调用 `endRefresh()`；刷新内容尺寸变化后调用 `updateCustomRefresherHeight()`。
 
-## 图片与国际化
+## 默认状态图标与自定义图片
 
-各阶段可通过 `refresher-default-img`、`refresher-pulling-img`、`refresher-refreshing-img`、`refresher-complete-img` 设置图片。文本既支持字符串，也支持 `{ 'zh-Hans': '...', en: '...' }`。
+未配置图片时，`default` 显示向下箭头，`release-to-refresh` 和 `go-f2` 显示向上箭头，`loading` 显示旋转加载图标，与 uni-app 版的刷新状态表达一致。`refresher-refreshing-animated="false"` 可关闭加载图标的旋转动画。
+
+各阶段可通过 `refresher-default-img`、`refresher-pulling-img`、`refresher-refreshing-img`、`refresher-complete-img` 设置图片；自定义图片会替代对应状态的内置图标。文本既支持字符串，也支持 `{ 'zh-Hans': '...', en: '...' }`。
