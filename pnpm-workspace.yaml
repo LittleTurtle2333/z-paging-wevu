@@ -1,5 +1,9 @@
 allowBuilds:
   '@swc/core': true
   esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - miniflare@5.20261104.0-beta
+  - wrangler@4.158.0
 onlyBuiltDependencies:
   - esbuild

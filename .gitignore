@@ -1,4 +1,5 @@
 node_modules/
+.wrangler/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 dist/

@@ -77,7 +77,9 @@ async function queryList([pageNo, pageSize]: [number, number, string]) {
 
 ## 文档
 
-在线文档：<https://littleturtle2333.github.io/z-paging-wevu/>
+主站：<https://paging.weapp.dev/>（需管理员完成[首次部署](./docs-deployment.md)）
+
+GitHub Pages 备用站：<https://littleturtle2333.github.io/z-paging-wevu/>
 
 ```bash
 pnpm install
@@ -95,11 +97,20 @@ pnpm build
 真实浏览器验收（首次运行需要安装 Chromium）：
 
 ```bash
-pnpm exec playwright install chromium
+pnpm exec playwright install --only-shell chromium
 pnpm test:docs
 ```
 
-验收脚本会临时启动文档服务，检查主要导航、主题切换、移动端横向溢出、控制台错误和失败请求，并在结束时关闭服务与浏览器。
+`pnpm test:docs` 会先构建文档，再临时启动预览服务，使用后台浏览器检查构建产物的导航、深层页面直达与刷新、搜索、静态资源、主题切换、移动端横向溢出、控制台错误和失败请求。结束时会关闭服务与浏览器。
+
+`DOCS_BASE` 默认是 GitHub Pages 使用的 `/z-paging-wevu/`。Workers 主站使用根路径，可在本地分别构建验收：
+
+```bash
+pnpm test:docs
+DOCS_BASE=/ pnpm test:docs
+```
+
+两种路径需要分别构建，不能共用同一份产物。自动发布、域名接入和回滚步骤见[文档部署说明](./docs-deployment.md)。
 
 ## 与 z-paging 的主要差异
 

@@ -9,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/LittleTurtle2333/z-paging-wevu.git"
   },
-  "homepage": "https://littleturtle2333.github.io/z-paging-wevu/",
+  "homepage": "https://paging.weapp.dev/",
   "bugs": {
     "url": "https://github.com/LittleTurtle2333/z-paging-wevu/issues"
   },
@@ -64,7 +64,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "test:docs": "node scripts/verify-docs.mjs",
+    "test:docs": "pnpm docs:build && node scripts/verify-docs.mjs",
     "build": "pnpm typecheck && pnpm docs:build"
   },
   "peerDependencies": {
@@ -78,7 +78,8 @@
     "vitepress": "^1.6.4",
     "vue": "^3.5.13",
     "vue-tsc": "^3.3.12",
-    "wevu": "^7.5.0"
+    "wevu": "^7.5.0",
+    "wrangler": "4.158.0"
   },
   "engines": {
     "node": ">=20.19.0",

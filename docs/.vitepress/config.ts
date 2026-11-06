@@ -1,17 +1,19 @@
 import { defineConfig } from 'vitepress'
 
+const base = process.env.DOCS_BASE ?? '/z-paging-wevu/'
+
 export default defineConfig({
   lang: 'zh-CN',
   title: 'z-paging-wevu',
   description: '面向 weapp-vite + wevu 的 z-paging 兼容分页组件',
-  base: '/z-paging-wevu/',
+  base,
   cleanUrls: true,
   lastUpdated: true,
   markdown: {
     lineNumbers: true,
   },
   head: [
-    ['link', { rel: 'icon', href: '/z-paging-wevu/logo.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'icon', href: `${base}logo.svg`, type: 'image/svg+xml' }],
     ['meta', { name: 'theme-color', content: '#176b52' }],
     ['meta', { name: 'keywords', content: 'z-paging,wevu,weapp-vite,微信小程序,分页,虚拟列表' }],
   ],
