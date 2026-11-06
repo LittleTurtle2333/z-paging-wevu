@@ -343,6 +343,17 @@ const refresherArrowSrc = computed(
   () => REFRESHER_ARROW_SRC[props.refresherThemeStyle === 'white' ? 'white' : 'black'],
 )
 
+/** 刷新完成状态的默认图标（与 z-paging 一致的素材）。 */
+const REFRESHER_SUCCESS_SRC = {
+  black: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIhnAAAAElBMVEVRUVFHcExTU1NRUVFRUVFRUVFOSlSUAAAABnRSTlP/AI6+VySB3ZENAAACcElEQVRYw+2YyYKCMAyGI8hdpdxdZu7gcpdZ7jL6/s8yYheSNi0aPdqbwOffpGmaFOYPD3gj4bisN7vddv17N/JVgxn5x12IWgIaWTuO/IE3PseQbwjGPo2cgRmHFLJwdm/X643zwiqOKPPJ1nj3sjEP2iiifZWj5bhopSyGaEO2HX5fbQJzwJ+W7x/jw5ZFjsEU0PMph9xE8i5EqprKALW95eJQURkgzw98uJ/JvwGecR7bIjWWsUgVrrIfFZ2HlLy3sKETD1mmRLRMRhGVssRa0xJkdn3SpJBymBkM8+pSSDXMDNyDaToVHd2fgpNt0sjwiUZO19+jGQ+gQEg9Oq+bufmAVGihomNmjQG7UG3020vrlm7lkFnKFGU3kZ0KGAdmKe821pipQ+qEKcrZeTL2g5FsUks4cStjEZWwXg0b0n4GxmEpkWwIs5VBynjgK7xZaz1/0D7OxkVuLpsY5BQNFyLS84VBjjbg0iL2r2EQHBOxBhikuUOkdxODVF1cxHoWtPPsiyXO455Iv34hssCO8EV4ZIYTjS8SR4qYSHRiTiYQ4ZFbHi0iIhhBTi6dTCgSWRcnw4h4yGTuyTAiOGBIWGoZTgSHJQl+LcOJ4OCnW6yX2bMnJ9pidCOXtkTkTrIGpYuOynAiOF14SamMiOCk5Ke+mq8BcOrrvym8d0zKIQnWT+M1WwOQNO4fFiWb18hhERxJPx2fblbPHHyC41VyiAtKBUFBIih7JMWVoIQTFIr3lKPN80WvoLSWFPC653ioTZA0I0FrQ7qU6asaK0H7JmkSJa2ooOGVtNUsc3j9FYHkIkJy3SG6VHnfXKXGP9t4N9Q4Ye98AAAAAElFTkSuQmCC',
+  white: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIhnAAAAGFBMVEVHcEz///////////////////////////8dS1W+AAAAB3RSTlMAiVYk6KvDHLfaegAAAo1JREFUWMPtWEtzmzAQNhCTq910ytXpiyvxTNOr60zrayepx9d02gnX4sTm7xcEiJX2gdnkGJ1A4tOnfWqXyeR1vMRYzrcPD9v5h5MBl3/Ldvx4cxIg/FWC8X0xjLjalM54uhhCfCrRuJURX0pi3EmIqZV7O59vrRZmguStHL9b7S7ftfLwOtiZDw7AHMtmquAQ12b5Wwbnordm8g9zLLO49qc/m2n6aKnhwPOGZ08hAiNHhheiHae1lOUPGZpQkPKa3q0mOUjaRzSRaGUjpy/mmWSwySSpllcEteBKAT52KEnSbblA51pJEPxBQoiH1FP4E3s5+FJv07h6/ylD6ui7B+9fq/ehrFB98ghec9EoVtyjK8pqCHLmCBOwMWSCeWFNN4MbPAk55NhsvoFHSSVR0k5TCTTEzlUGcqV/nVp7n9oIVkmtaqbAEqEgfdgHJPwsEAyZ9r4VAZXFjpEwyaw3+H2v42KYxKhs1XvY/gSSGv+IHyUSuHXCeZhLAgVI3EjgSGo1Fb3xO0tGGU9S2/KAIbtjxpJASG73qox6w5LUq0cEOa+iIONIWIilQSQ0pPa2jgaRQAgQP7c0mITRWGxpMAmEQFN2NAQJNCV0mI6GIIEO47hlQ0ORQLd0nL+hoUjg1m6I1TRr8uYEAriBHLcVFQ5UEMiBe3XkTBEG04WXlGKGxPnMS305XQPA1Ocn2JiuAZwE66fxnKwBnDTuXxZTMq85lwW6kt5ndLqZPefiU1yvmktcUSooChJF2aMprhQlnKJQ5FxRKkcVRa+itNYU8Io2oVkY14w0NMWYlqft91Bj9VHq+ca3b43BxjWJmla0sfKohlfTVpPN+93L/yLQ/IjQ/O5Q/VR5HdL4D7mlxmjwVdELAAAAAElFTkSuQmCC',
+} as const
+
+const refresherCompleteIconSrc = computed(
+  () => props.refresherCompleteImg
+    || REFRESHER_SUCCESS_SRC[props.refresherThemeStyle === 'white' ? 'white' : 'black'],
+)
+
 const refresherImage = computed(() => {
   const map = {
     'default': props.refresherDefaultImg,
@@ -496,7 +507,6 @@ function updateLeftAndRightWidth() {
 
 function settlePending(): ZPagingWevuResult {
   loading.value = false
-  refreshing.value = false
   const result = currentResult()
   pendingQuery?.resolve(result)
   pendingQuery = null
@@ -733,13 +743,24 @@ function clean() {
 }
 
 function endRefresh() {
-  refreshing.value = false
+  const delay = vpNumber(props.refresherCompleteDelay, 0)
   if (!props.useCustomRefresher) {
-    refresherStatus.value = 'default'
+    if (!refreshing.value) {
+      refresherStatus.value = 'default'
+      return
+    }
+    // 原生模式下保持 `refreshing` 直到完成态展示结束，否则原生刷新区域会立即收起
+    refresherStatus.value = delay > 0 ? 'complete' : 'default'
+    void vpWait(delay).then(() => {
+      refreshing.value = false
+      refresherStatus.value = 'default'
+      emit('on-restore')
+    })
     return
   }
+  refreshing.value = false
   refresherStatus.value = 'complete'
-  void vpWait(vpNumber(props.refresherCompleteDelay, 0)).then(() => {
+  void vpWait(delay).then(() => {
     pullingDistance.value = 0
     refresherStatus.value = 'default'
     emit('on-restore')
@@ -1230,6 +1251,11 @@ onUnmounted(() => {
                 :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
               />
               <image
+                v-else-if="refresherStatus === 'complete'"
+                class="z-paging-wevu__refresher-arrow"
+                :src="refresherCompleteIconSrc"
+              />
+              <image
                 v-else
                 class="z-paging-wevu__refresher-arrow"
                 :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
@@ -1250,6 +1276,11 @@ onUnmounted(() => {
                 v-else-if="refresherStatus === 'complete'"
                 name="refresherComplete"
               >
+                <image
+                  class="z-paging-wevu__refresher-arrow"
+                  :src="refresherCompleteIconSrc"
+                  :style="refresherImgStyle"
+                />
                 <text class="z-paging-wevu__refresher-text">
                   {{
                     refresherText
@@ -1476,6 +1507,11 @@ onUnmounted(() => {
               :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
             />
             <image
+              v-else-if="refresherStatus === 'complete'"
+              class="z-paging-wevu__refresher-arrow"
+              :src="refresherCompleteIconSrc"
+            />
+            <image
               v-else
               class="z-paging-wevu__refresher-arrow"
               :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
@@ -1496,6 +1532,11 @@ onUnmounted(() => {
               v-else-if="refresherStatus === 'complete'"
               name="refresherComplete"
             >
+              <image
+                class="z-paging-wevu__refresher-arrow"
+                :src="refresherCompleteIconSrc"
+                :style="refresherImgStyle"
+              />
               <text class="z-paging-wevu__refresher-text">
                 {{
                   refresherText

@@ -28,6 +28,8 @@
 
 此时组件关闭微信默认刷新区域，改为在内容顶部自绘一条与 `refresher-threshold` 等高的文案层，由原生下拉位移带出：位移不经过 `setData`，与手指 1:1 跟手，下拉过程中也不会推出超过阈值高度的空白。状态切换通过 `bindrefresherpulling` 的 `dy` 判定，刷新结束后自动复位。
 
+需要「刷新成功」完成态时设置 `refresher-complete-delay`（大于 0，例如 `600`）：该模式下组件会在延迟期间保持 `refresher-triggered`，展示完成图标与 `refresher-complete-text` 后再收起原生刷新区域。
+
 页面滚动模式下，原生页面下拉刷新需要通过页面生命周期调用 `paging.reload()`。
 
 ## 自定义刷新

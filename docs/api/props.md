@@ -84,7 +84,7 @@ type ZPagingWevuFetch = (params: {
 | `refresherRefreshingImg` | `string` | — | 刷新中图片 |
 | `refresherCompleteImg` | `string` | — | 完成图片 |
 | `refresherRefreshingAnimated` | `boolean` | `true` | 刷新图片旋转动画 |
-| `refresherCompleteDelay` | `number \| string` | `0` | 完成状态延迟 |
+| `refresherCompleteDelay` | `number \| string` | `0` | 完成状态延迟；大于 `0` 时才展示「刷新成功」完成态（原生与自定义刷新模式均生效） |
 | `refresherCompleteDuration` | `number \| string` | `300` | 完成动画时长 |
 | `refresherDefaultDuration` | `number \| string` | `200` | 默认动画时长 |
 | `refresherF2Enabled` | `boolean` | `false` | 启用二楼 |
