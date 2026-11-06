@@ -15,7 +15,6 @@ import type {
   ZPagingWevuResult,
 } from './types'
 import { computed, nextTick, onMounted, onUnmounted, ref, useSelectorQuery, watch } from 'wevu'
-import { getWindowMetrics } from './window'
 import { useVirtualList } from './useVirtualList'
 import {
   vpArray,
@@ -28,6 +27,7 @@ import {
   vpUpdateTimeName,
   vpWait,
 } from './utils'
+import { getWindowMetrics } from './window'
 
 const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   modelValue: () => [],
@@ -76,6 +76,7 @@ const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   refresherCompleteScrollable: false,
   refresherOutRate: 0.65,
   refresherPullRate: 0.75,
+  refresherDefaultStyle: 'black',
   refresherFps: 40,
   refresherMaxAngle: 40,
   watchRefresherTouchmove: false,
@@ -325,6 +326,9 @@ const refresherText = computed(() => {
   }
   return vpText(map[refresherStatus.value], '')
 })
+/** 原生下拉刷新模式下的自绘文案层高度，与原生触发阈值对齐。 */
+const refresherHintHeight = computed(() => vpPx(props.refresherThreshold, 40))
+
 const refresherImage = computed(() => {
   const map = {
     'default': props.refresherDefaultImg,
@@ -717,6 +721,7 @@ function clean() {
 function endRefresh() {
   refreshing.value = false
   if (!props.useCustomRefresher) {
+    refresherStatus.value = 'default'
     return
   }
   refresherStatus.value = 'complete'
@@ -882,6 +887,17 @@ function handleRefresherRefresh() {
   resetState()
   emit('reload')
   void startQuery(pageSize.value, false, 'user-pull-down')
+}
+
+function handleNativeRefresherPulling(event?: {
+  detail?: { dy?: number }
+}) {
+  if (props.useCustomRefresher || refreshing.value) {
+    return
+  }
+  const dy = Number(event?.detail?.dy ?? 0)
+  const threshold = vpPx(props.refresherThreshold, 40)
+  refresherStatus.value = dy >= threshold ? 'release-to-refresh' : 'default'
 }
 
 function eventY(event: {
@@ -1171,8 +1187,10 @@ onUnmounted(() => {
             "
             :refresher-triggered="refreshing"
             :refresher-threshold="refresherThreshold"
+            :refresher-default-style="refresherDefaultStyle"
             :refresher-background="refresherBackground || bgColor || '#ffffff'"
             :lower-threshold="lowerThreshold"
+            @refresherpulling="handleNativeRefresherPulling"
             @refresherrefresh="handleRefresherRefresh"
             @scrolltolower="handleScrollToLower"
             @scrolltoupper="handleScrollToUpper"
@@ -1181,6 +1199,26 @@ onUnmounted(() => {
           >
             <view v-if="!stickyTop" class="z-paging-wevu__top">
               <slot name="top" />
+            </view>
+
+            <view
+              v-if="
+                !useCustomRefresher
+                  && refresherEnabled
+                  && refresherDefaultStyle === 'none'
+              "
+              class="z-paging-wevu__refresher-hint"
+              :style="`height:${refresherHintHeight}px;margin-top:-${refresherHintHeight}px;background:${refresherBackground || bgColor || 'transparent'};`"
+            >
+              <view
+                v-if="refresherStatus === 'loading'"
+                class="z-paging-wevu__refresher-spinner"
+                :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+              />
+              <text v-else class="z-paging-wevu__refresher-arrow">
+                {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
+              </text>
+              <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
             </view>
 
             <view
@@ -1404,6 +1442,26 @@ onUnmounted(() => {
             :class="{ 'z-paging-wevu__top--sticky': stickyTop }"
           >
             <slot name="top" />
+          </view>
+
+          <view
+            v-if="
+              !useCustomRefresher
+                && refresherEnabled
+                && refresherDefaultStyle === 'none'
+            "
+            class="z-paging-wevu__refresher-hint"
+            :style="`height:${refresherHintHeight}px;margin-top:-${refresherHintHeight}px;background:${refresherBackground || bgColor || 'transparent'};`"
+          >
+            <view
+              v-if="refresherStatus === 'loading'"
+              class="z-paging-wevu__refresher-spinner"
+              :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+            />
+            <text v-else class="z-paging-wevu__refresher-arrow">
+              {{ refresherStatus === 'release-to-refresh' ? '↑' : '↓' }}
+            </text>
+            <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
           </view>
 
           <view
@@ -1685,6 +1743,7 @@ onUnmounted(() => {
 .z-paging-wevu__scroll {
   width: 100%;
   height: var(--vp-scroll-height, 100%);
+  overflow: hidden;
 }
 .z-paging-wevu__scroll--flex {
   flex: 1 1 0;
@@ -1712,7 +1771,8 @@ onUnmounted(() => {
 .z-paging-wevu--chat .z-paging-wevu__content {
   transform: scaleY(-1);
 }
-.z-paging-wevu__refresher {
+.z-paging-wevu__refresher,
+.z-paging-wevu__refresher-hint {
   display: flex;
   overflow: hidden;
   flex-wrap: wrap;
@@ -1721,6 +1781,10 @@ onUnmounted(() => {
   justify-content: center;
   transition-property: height;
   transition-timing-function: ease-out;
+}
+.z-paging-wevu__refresher-hint {
+  width: 100%;
+  box-sizing: border-box;
 }
 .z-paging-wevu__refresher-img {
   width: 40rpx;

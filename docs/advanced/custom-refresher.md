@@ -1,20 +1,32 @@
 # 自定义下拉刷新与二楼
 
-## 内置刷新
+## 内置刷新（推荐）
 
-默认使用 `scroll-view` 原生 refresher：
+默认使用 `scroll-view` 原生 refresher，下拉位移由视图层提供，跟手性最好：
 
 ```vue
 <ZPagingWevu
   :fixed="true"
   :refresher-enabled="true"
   :refresher-threshold="40"
+  @refresher-status-change="onStatusChange"
+/>
+```
+
+原生模式下微信只绘制自己的指示器，`refresher-default-text` 等文案不会生效。需要「继续下拉刷新 / 松开立即刷新 / 正在刷新...」这类文案时，把 `refresher-default-style` 设为 `none`：
+
+```vue
+<ZPagingWevu
+  :refresher-threshold="48"
+  refresher-default-style="none"
   refresher-default-text="继续下拉刷新"
   refresher-pulling-text="松开立即刷新"
   refresher-refreshing-text="正在刷新..."
   @refresher-status-change="onStatusChange"
 />
 ```
+
+此时组件关闭微信默认刷新区域，改为在内容顶部自绘一条与 `refresher-threshold` 等高的文案层，由原生下拉位移带出：位移不经过 `setData`，与手指 1:1 跟手，下拉过程中也不会推出超过阈值高度的空白。状态切换通过 `bindrefresherpulling` 的 `dy` 判定，刷新结束后自动复位。
 
 页面滚动模式下，原生页面下拉刷新需要通过页面生命周期调用 `paging.reload()`。
 
@@ -38,6 +50,8 @@
   </template>
 </ZPagingWevu>
 ```
+
+该模式在逻辑层按 `refresherPullRate` / `refresherOutRate` 逐帧计算高度，高频拖动时会落后于手指，且高度随拖拽持续增长。仅在需要完全自绘（二楼、图片、非矩形刷新区）时使用。
 
 状态包括：
 

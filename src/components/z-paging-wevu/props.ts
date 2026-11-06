@@ -158,6 +158,12 @@ export interface ZPagingWevuProps {
   refresherUpdateTimeStyle?: ZPagingWevuStyle
   /** 下拉刷新区域背景色。@defaultValue undefined */
   refresherBackground?: string
+  /**
+   * 原生下拉刷新指示器样式，仅原生模式（未开启 `useCustomRefresher`）生效。
+   * 设为 `none` 时关闭微信默认刷新区域，改由组件自绘文案层，位移仍由原生提供，保持跟手。
+   * @defaultValue 'black'
+   */
+  refresherDefaultStyle?: 'black' | 'white' | 'none'
 
   /** 是否启用加载更多。@defaultValue true */
   loadingMoreEnabled?: boolean
@@ -342,6 +348,7 @@ export const zPagingWevuDefaults = {
   refresherCompleteScrollable: false,
   refresherOutRate: 0.65,
   refresherPullRate: 0.75,
+  refresherDefaultStyle: 'black',
   refresherFps: 40,
   refresherMaxAngle: 40,
   watchRefresherTouchmove: false,

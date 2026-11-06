@@ -11,6 +11,7 @@
 - 内置 `fetch`、本地分页、缓存、空态与加载失败
 - 页面滚动、整屏 `scroll-view`、顶部/底部/左右插槽
 - 固定和动态高度虚拟列表、聊天记录模式、键盘适配
+- 原生下拉刷新 + 自绘文案层（`refresher-default-style="none"`）：位移由视图层提供，与手指 1:1 跟手
 - 自定义下拉刷新、二楼 F2、返回顶部、国际化文本
 - TypeScript 类型与 `createPagingController()` 控制器
 - `ZPagingSwiper` / `ZPagingSwiperItem` / `ZPagingEmptyView` / `ZPagingCell` 公用子组件

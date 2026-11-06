@@ -68,7 +68,8 @@ type ZPagingWevuFetch = (params: {
 | `refresherOnly` | `boolean` | `false` | 仅使用刷新，不启用加载更多 |
 | `refresherEnabled` | `boolean` | `true` | 启用下拉刷新 |
 | `refresherThreshold` | `number \| string` | `40` | 刷新触发距离 |
-| `useCustomRefresher` | `boolean` | `false` | 使用自定义刷新 |
+| `useCustomRefresher` | `boolean` | `false` | 使用自定义刷新（逻辑层逐帧计算高度） |
+| `refresherDefaultStyle` | `'black' \| 'white' \| 'none'` | `'black'` | 原生刷新指示器样式；`none` 关闭微信默认刷新区域并启用自绘文案层，位移仍由原生提供 |
 | `showRefresherWhenReload` | `boolean` | `false` | reload 时展示刷新状态 |
 | `reloadWhenRefresh` | `boolean` | `true` | 刷新时执行 reload |
 | `refresherThemeStyle` | `string` | `'black'` | 刷新主题 |
