@@ -20,6 +20,13 @@ export default defineConfig({
   themeConfig: {
     logo: '/logo.svg',
     siteTitle: 'z-paging-wevu',
+    socialLinks: [
+      {
+        icon: 'github',
+        link: 'https://github.com/LittleTurtle2333/z-paging-wevu',
+        ariaLabel: 'GitHub 仓库',
+      },
+    ],
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '^/guide/' },
       { text: '功能', link: '/advanced/virtual-list', activeMatch: '^/advanced/' },

@@ -17,6 +17,9 @@ hero:
     - theme: alt
       text: 查看组件 API
       link: /api/props
+    - theme: alt
+      text: GitHub 仓库
+      link: https://github.com/LittleTurtle2333/z-paging-wevu
 
 features:
   - icon:
