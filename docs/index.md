@@ -15,6 +15,9 @@ hero:
       text: 快速开始
       link: /guide/getting-started
     - theme: alt
+      text: 示例 Demo
+      link: /guide/demo
+    - theme: alt
       text: 查看组件 API
       link: /api/props
     - theme: alt

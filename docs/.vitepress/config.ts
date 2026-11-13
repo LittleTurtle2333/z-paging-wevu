@@ -40,6 +40,7 @@ export default defineConfig({
           items: [
             { text: '介绍', link: '/guide/introduction' },
             { text: '安装与快速开始', link: '/guide/getting-started' },
+            { text: '示例 Demo', link: '/guide/demo' },
             { text: '滚动与布局模式', link: '/guide/scroll-modes' },
             { text: '从 z-paging 迁移', link: '/guide/migration' },
             { text: '常见问题', link: '/guide/faq' },
