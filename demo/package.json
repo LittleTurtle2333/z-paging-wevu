@@ -1,0 +1,17 @@
+{
+  "name": "z-paging-wevu-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "z-paging-wevu 能力演示小程序（weapp-vite + wevu）",
+  "scripts": {
+    "dev": "wv dev",
+    "build": "wv build"
+  },
+  "dependencies": {
+    "wevu": "^7.10.0"
+  },
+  "devDependencies": {
+    "weapp-vite": "^7.10.0"
+  }
+}
