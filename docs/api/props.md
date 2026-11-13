@@ -19,7 +19,7 @@
 | `fetchParams` | `Record<string, unknown>` | — | 传给 `fetch` 的额外参数 |
 | `delay` | `number \| string` | `0` | 查询延迟，ms |
 | `minDelay` | `number \| string` | `0` | 查询最短耗时，ms |
-| `autoCleanListWhenReload` | `boolean` | `false` | reload 开始时清空列表 |
+| `autoCleanListWhenReload` | `boolean` | `true` | reload 开始时清空列表 |
 | `autoCleanListWhenReloadError` | `boolean` | `true` | reload 失败时清空列表 |
 | `autoScrollToTopWhenReload` | `boolean` | `true` | reload 时自动回到顶部（首次挂载不触发） |
 
@@ -41,7 +41,7 @@ type ZPagingWevuFetch = (params: {
 
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `fixed` | `boolean` | `true` | 使用整屏 `scroll-view`，与 uni-app 版默认行为一致 |
+| `fixed` | `boolean` | `true` | 使用整屏 `scroll-view`；设为 `false` 时仍使用内部 `scroll-view`，但高度由父容器决定（弹窗、swiper-item 等嵌套场景） |
 | `usePageScroll` | `boolean` | `false` | 使用页面滚动 |
 | `layoutOnly` | `boolean` | `false` | 只保留布局，关闭自动分页交互 |
 | `fixedTop` | `number` | `0` | 顶部固定区域高度，px |
@@ -67,6 +67,8 @@ type ZPagingWevuFetch = (params: {
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `refresherOnly` | `boolean` | `false` | 仅使用刷新，不启用加载更多 |
+| `scrollable` | `boolean` | `true` | 列表是否允许滚动 |
+| `watchTouchDirectionChange` | `boolean` | `false` | 监听触摸方向并触发 `touch-direction-change` |
 | `refresherEnabled` | `boolean` | `true` | 启用下拉刷新 |
 | `refresherThreshold` | `number \| string` | `40` | 刷新触发距离 |
 | `useCustomRefresher` | `boolean` | `false` | 使用自定义刷新（逻辑层逐帧计算高度） |

@@ -6,7 +6,7 @@
 		<!-- use-chat-record-mode：开启聊天记录模式 -->
 		<!-- safe-area-inset-bottom：开启底部安全区域适配 -->
 		<!-- bottom-bg-color：设置slot="bottom"容器的背景色，这里设置为和chat-input-bar的背景色一致 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :use-chat-record-mode="true" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
+		<ZPagingWevu :controller="paging" v-model="dataList" :use-chat-record-mode="true" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
 		@query="queryList" @keyboardHeightChange="keyboardHeightChange" @hidedKeyboard="hidedKeyboard"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">

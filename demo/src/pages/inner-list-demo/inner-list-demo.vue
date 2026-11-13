@@ -1,7 +1,7 @@
 <!-- 内置列表模式演示(vue) -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="paging" use-inner-list @query="queryList"
+		<ZPagingWevu :controller="paging" use-inner-list @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
@@ -48,8 +48,13 @@ definePageJson({
 		paging.reload();
 	}
 	
+	// 点击 cell
+	const itemClick = (item, index) => {
+		wx.showToast({ title: `点击了第${index + 1}项`, icon: 'none' })
+	}
+
 	// @query所绑定的方法不要自己调用！！需要刷新列表数据时，只需要调用paging.reload()即可
-    const queryList = ([pageNo, pageSize]) => {
+   const queryList = ([pageNo, pageSize]) => {
 		// 组件加载时会自动触发此方法，因此默认页面加载时会自动触发，无需手动调用
 		// 这里的pageNo和pageSize会自动计算好，直接传给服务器即可
 		// 模拟请求服务器获取分页数据，请替换成自己的网络请求

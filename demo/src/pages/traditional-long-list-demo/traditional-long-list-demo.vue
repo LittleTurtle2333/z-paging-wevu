@@ -7,7 +7,7 @@
 		</view>
 		<view class="list">
 			<view class="item" v-for="(item,index) in dataList" :key="index">
-				<image class="item-image" mode="aspectFit" src="@/static/boji1.png"></image>
+				<image class="item-image" mode="aspectFit" src="/static/boji1.png"></image>
 				<view class="item-content">
 					<text class="item-title">第{{index + 1}}行</text>
 					<text style="color: red;margin-left: 10rpx;">传统列表展示</text>
@@ -24,6 +24,7 @@
 
 <script>
 	import DemoTabs from '@/components/demo-tabs/index.vue'
+	import request from '@/http/request'
 
 	export default {
 		components: { DemoTabs },
@@ -54,7 +55,7 @@
 					pageSize: 1000,
 					random: this.tabIndex === 1
 				}
-				this.$request.queryListLong(params).then(res => {
+				request.queryListLong(params).then(res => {
 					if(this.pageNo === 1){
 						this.dataList = res.data.list;
 					}else{

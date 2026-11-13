@@ -1,7 +1,7 @@
 <!-- i18n国际化演示(vue) -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList"
+		<ZPagingWevu :controller="paging" v-model="dataList" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
@@ -32,14 +32,18 @@ definePageJson({
 	import { onLoad } from 'wevu';
 	import request from '@/http/request';
 	
+	const applicationLocale = ref('');
+
 	onLoad(() => {
 		// 获取当前设置的语言
-		applicationLocale.value = wx.getLocale();
-		
-		// 监听应用语言切换
-		wx.onLocaleChange((e) => {
-			applicationLocale.value = e.locale;
-		})
+		applicationLocale.value = typeof wx.getLocale === 'function' ? wx.getLocale() : '';
+
+		// 监听应用语言切换（部分平台/基础库没有该 API）
+		if (typeof wx.onLocaleChange === 'function') {
+			wx.onLocaleChange((e) => {
+				applicationLocale.value = e.locale;
+			})
+		}
 	})
 	
 	const locales = [{
@@ -58,7 +62,6 @@ definePageJson({
 		code: 'zh-Hant',	
 	}]
 	
-	const applicationLocale = ref('');
 	//------------------------ z-paging分页相关 -----------------------
     const paging = createPagingController();
 	
@@ -73,8 +76,12 @@ definePageJson({
 			itemList: locales.map(item => item.text),
 			success: res => {
 				const local = locales[res.tapIndex];
-				//设置当前语言
-				wx.setLocale(local.code);
+				// 微信小程序没有 wx.setLocale，这里仅做演示提示
+				if (typeof wx.setLocale === 'function') {
+					wx.setLocale(local.code);
+				} else {
+					wx.showToast({ title: `微信不支持运行时切换语言(${local.code})`, icon: 'none' });
+				}
 			}
 		});
 	}

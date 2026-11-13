@@ -1,10 +1,10 @@
 <!-- 在这个文件对每个tab对应的列表进行渲染 -->
 <template>
 	<view class="content">
-		<!-- 这里设置了z-paging加载时禁止自动调用reload方法，自行控制何时reload（懒加载）-->
+		<!-- 懒加载：当前tab或已加载过的tab才渲染，渲染时由 z-paging 自动触发首次加载 -->
 		<!-- watch-touch-direction-change用于开启监听列表触摸方向，只有当当前组件的列表滚动到顶部并且吸顶才需要判断-->
-		<ZPagingWevu ref="paging" @scroll="scroll" v-model="dataList" @query="queryList" :watch-touch-direction-change="true" @touchDirectionChange="touchDirectionChange" :fixed="false" :scrollable="scrollable"
-			:refresher-enabled="false" @scrolltoupper="scrolltoupper" :auto="false">
+		<ZPagingWevu v-if="firstLoaded || isCurrentPage" :controller="paging" @scroll="scroll" v-model="dataList" @query="queryList" :watch-touch-direction-change="true" @touchDirectionChange="touchDirectionChange" :fixed="false" :scrollable="scrollable"
+			:refresher-enabled="false" @scrolltoupper="scrolltoupper">
 			<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 			<view class="item" v-for="(item,index) in dataList" :key="index">
 				<view class="item-title">{{item.title}}</view>
@@ -51,24 +51,25 @@ definePageJson({
 	const completeFunc = ref(null);
 	
 
+	// 当前组件的列表是否已经被切换到过（用于懒加载）
+	const isCurrentPage = ref(false);
+
 	watch(() => props.currentIndex, (newVal) => {
-		if (newVal === props.tabIndex) {
-			// 懒加载，当滑动到当前的item时，才去加载
-			if (!firstLoaded.value) {
-				setTimeout(() => {
-					paging.reload();
-					setTimeout(() => {
-						// 首次切换到当前tab时，如果当前是吸顶状态，则设置当前列表允许滚动
-						if (stickyed.value) {
-							scrollable.value = true;
-						}
-					}, 100);
-				}, 100);
-			}
-			// 非首次切换到当前tab时，如果scrollTop=0，则页面list允许滚动
-			if (scrollTop.value === 0 && firstLoaded.value) {
-				emits('setScrollable', true);
-			}
+		if (newVal !== props.tabIndex) {
+			return;
+		}
+		isCurrentPage.value = true;
+		// 首次切换到当前tab时，如果当前是吸顶状态，则设置当前列表允许滚动
+		if (!firstLoaded.value) {
+			setTimeout(() => {
+				if (stickyed.value) {
+					scrollable.value = true;
+				}
+			}, 100);
+		}
+		// 非首次切换到当前tab时，如果scrollTop=0，则页面list允许滚动
+		if (scrollTop.value === 0 && firstLoaded.value) {
+			emits('setScrollable', true);
 		}
 	}, {
 		immediate: true

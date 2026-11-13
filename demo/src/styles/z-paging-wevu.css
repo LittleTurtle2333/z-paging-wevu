@@ -16,6 +16,9 @@
   left: 0;
   overflow: hidden;
 }
+.z-paging-wevu--fill {
+  overflow: hidden;
+}
 .z-paging-wevu__layout {
   display: flex;
   flex: 1 1 auto;

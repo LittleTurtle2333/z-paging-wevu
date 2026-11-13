@@ -5,7 +5,7 @@
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中 -->
 		<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 		<template #top>
-			<DemoTabs :list="tabList" ref="tabs" :current="current" @change="tabsChange"   />
+			<DemoTabs :list="tabList" :current="current" @change="tabsChange"   />
 		</template>
 		<!-- swiper必须设置height:100%，因为swiper有默认的高度，只有设置高度100%才可以铺满页面  -->
 		<swiper class="swiper" :current="current" @transition="swiperTransition" @animationfinish="swiperAnimationfinish">
@@ -22,19 +22,12 @@
 import SwiperListItem from '@/components/swiper-list-item/swiper-list-item.vue'
 import ZPagingSwiper from '@/components/z-paging-swiper/index.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
-import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '滑动切换选项卡演示(标准写法)',
 })
 	import { ref } from 'wevu';
-	import request from '@/http/request';
-	
-	
-    const paging = createPagingController();
-	const tabs = ref(null);
-	
+
 	const current = ref(0);
 	const tabList = ref(['测试1','测试2','测试3','测试4']);
 	
@@ -45,14 +38,13 @@ definePageJson({
 	}
 	
 	// swiper滑动中
-	const swiperTransition = (e) => {
-		tabs.value.setDx(e.detail.dx);
+	const swiperTransition = () => {
+		// demo-tabs 为简化版组件，不支持跟手下划线动画
 	}
-	
+
 	// swiper滑动结束
 	const swiperAnimationfinish = (e) => {
 		current.value = e.detail.current;
-		tabs.value.unlockDx();
 	}
 </script>
 

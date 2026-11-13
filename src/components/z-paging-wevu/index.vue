@@ -49,10 +49,13 @@ const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   responseDataKey: '',
   delay: 0,
   minDelay: 0,
+  autoCleanListWhenReload: true,
   autoCleanListWhenReloadError: true,
   autoScrollToTopWhenReload: true,
   refresherOnly: false,
   refresherEnabled: true,
+  scrollable: true,
+  watchTouchDirectionChange: false,
   refresherThreshold: 40,
   useCustomRefresher: false,
   showRefresherWhenReload: false,
@@ -224,7 +227,7 @@ function currentResult(): ZPagingWevuResult {
   }
 }
 const currentDataKey = () => props.pagingDataKey ?? props.dataKey
-const isPageScroll = () => props.usePageScroll || !props.fixed
+const isPageScroll = () => props.usePageScroll
 const isInnerVirtualList = computed(
   () => props.useVirtualList && !props.forceCloseInnerList,
 )
@@ -253,6 +256,7 @@ const showEmpty = computed(
     && !props.refresherOnly
     && !props.hideEmptyView
     && !showLoading.value
+    && !loading.value
     && !refreshing.value
     && list.value.length === 0
     && (firstLoaded.value || props.isLoadFailed || failed.value),
@@ -597,6 +601,11 @@ function reload(animate = props.showRefresherWhenReload) {
     beginRefresher()
   }
   resetState()
+  // 与原版一致：reload（含切换 tab、搜索）时立即清空列表，
+  // 可通过 auto-clean-list-when-reload="false" 关闭该行为。
+  if (props.autoCleanListWhenReload && list.value.length > 0) {
+    setList([])
+  }
   emit('reload')
   // 与原版一致：reload 时回到顶部，切换 tab 或搜索后列表从第一页顶部开始
   if (props.autoScrollToTopWhenReload) {
@@ -635,9 +644,8 @@ async function complete(data?: unknown, success = true) {
     emit('reload')
   }
   if (data === false || !success) {
-    const shouldClean
-      = props.autoCleanListWhenReload ?? props.autoCleanListWhenReloadError
-    if (shouldClean && pageNo.value === firstPageNo.value) {
+    // 失败时由 autoCleanListWhenReloadError 单独控制（与原版一致）
+    if (props.autoCleanListWhenReloadError && pageNo.value === firstPageNo.value) {
       setList([])
     }
     setFailed(true)
@@ -965,10 +973,14 @@ function eventY(event: {
 
 function handleTouchStart(event: Parameters<typeof eventY>[0]) {
   const y = eventY(event)
-  if (lastTouchY >= 0 && y !== lastTouchY) {
+  if (props.watchTouchDirectionChange && lastTouchY >= 0 && y !== lastTouchY) {
     emit('touch-direction-change', y < lastTouchY ? 'top' : 'bottom')
   }
   lastTouchY = y
+  // 同一个手势可能同时命中 scroll-view 内容层与根节点，只记录一次
+  if (touchStartY >= 0) {
+    return
+  }
   if (
     !props.refresherEnabled
     || !props.useCustomRefresher
@@ -1194,12 +1206,13 @@ onUnmounted(() => {
     :class="[
       {
         'z-paging-wevu--fixed': fixed && !usePageScroll,
+        'z-paging-wevu--fill': !usePageScroll && !fixed,
         'z-paging-wevu--chat': useChatRecordMode,
       },
       pagingClass,
     ]"
     :style="[
-      `--vp-fixed-top:${fixedTop || 0}px;--vp-bg:${bgColor || 'transparent'};--vp-height:${height || 'auto'};--vp-width:${width || '100%'};--vp-max-width:${maxWidth || 'none'};--vp-min-height:${autoFullHeight && isPageScroll() ? `${metrics.windowHeight - (fixedTop || 0)}px` : '0px'}`,
+      `--vp-fixed-top:${fixedTop || 0}px;--vp-bg:${bgColor || 'transparent'};--vp-height:${height || (!usePageScroll && !fixed ? '100%' : 'auto')};--vp-width:${width || '100%'};--vp-max-width:${maxWidth || 'none'};--vp-min-height:${autoFullHeight && isPageScroll() ? `${metrics.windowHeight - (fixedTop || 0)}px` : '0px'}`,
       pagingStyle,
     ]"
     @touchstart="handleTouchStart"
@@ -1219,7 +1232,7 @@ onUnmounted(() => {
       </view>
 
       <view class="z-paging-wevu__main">
-        <template v-if="fixed && !usePageScroll">
+        <template v-if="!usePageScroll">
           <view v-if="stickyTop" class="z-paging-wevu__top">
             <slot name="top" />
           </view>
@@ -1228,10 +1241,10 @@ onUnmounted(() => {
             class="z-paging-wevu__scroll"
             :class="{ 'z-paging-wevu__scroll--flex': stickyTop }"
             :style="[
-              stickyTop ? '' : `--vp-scroll-height:${viewportHeight}px`,
+              stickyTop || !fixed ? '' : `--vp-scroll-height:${viewportHeight}px`,
               { backgroundColor: bgColorContent },
             ]"
-            :scroll-y="!refreshing || refresherRefreshingScrollable"
+            :scroll-y="scrollable && (!refreshing || refresherRefreshingScrollable)"
             :scroll-x="true"
             :scroll-top="scrollViewTop"
             :scroll-left="scrollViewLeft"
@@ -1252,9 +1265,17 @@ onUnmounted(() => {
             @scroll="handleScroll"
             @scrollend="emit('scrollend', $event)"
           >
-            <view v-if="!stickyTop" class="z-paging-wevu__top">
-              <slot name="top" />
-            </view>
+            <!-- 自定义下拉刷新的手势需要绑定在 scroll-view 内容层，否则 scroll-view 会吞掉父级的 touchmove -->
+            <view
+              class="z-paging-wevu__touch"
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
+              @touchcancel="handleTouchEnd"
+            >
+              <view v-if="!stickyTop" class="z-paging-wevu__top">
+                <slot name="top" />
+              </view>
 
             <view
               v-if="
@@ -1307,7 +1328,7 @@ onUnmounted(() => {
                   }}
                 </text>
               </slot>
-              <slot v-else name="refresher" :refresher-status="refresherStatus">
+              <slot v-else name="refresher" :refresherStatus="refresherStatus">
                 <image
                   v-if="!refresherImage && refresherStatus !== 'loading'"
                   class="z-paging-wevu__refresher-arrow"
@@ -1366,7 +1387,7 @@ onUnmounted(() => {
                 "
                 class="z-paging-wevu__chat-loading"
               >
-                <slot name="chatLoading" :loading-more-status="loadingStatus">
+                <slot name="chatLoading" :loadingMoreStatus="loadingStatus">
                   <text class="z-paging-wevu__more-text">
                     加载历史消息...
                   </text>
@@ -1419,7 +1440,7 @@ onUnmounted(() => {
                 :style="emptyViewSuperStyle"
                 @click="emit('empty-view-click')"
               >
-                <slot name="empty" :is-load-failed="failed || isLoadFailed">
+                <slot name="empty" :isLoadFailed="failed || isLoadFailed">
                   <image
                     v-if="emptyImage"
                     class="z-paging-wevu__empty-img"
@@ -1500,6 +1521,7 @@ onUnmounted(() => {
                   </text>
                 </slot>
               </view>
+              </view>
             </view>
           </scroll-view>
         </template>
@@ -1563,7 +1585,7 @@ onUnmounted(() => {
                 }}
               </text>
             </slot>
-            <slot v-else name="refresher" :refresher-status="refresherStatus">
+            <slot v-else name="refresher" :refresherStatus="refresherStatus">
               <image
                 v-if="!refresherImage && refresherStatus !== 'loading'"
                 class="z-paging-wevu__refresher-arrow"
@@ -1613,7 +1635,7 @@ onUnmounted(() => {
             <view
               v-if="useChatRecordMode && (loading || showChatLoadingWhenReload)"
             >
-              <slot name="chatLoading" :loading-more-status="loadingStatus">
+              <slot name="chatLoading" :loadingMoreStatus="loadingStatus">
                 <text class="z-paging-wevu__more-text">加载历史消息...</text>
               </slot>
             </view>
@@ -1657,7 +1679,7 @@ onUnmounted(() => {
               :style="emptyViewSuperStyle"
               @click="emit('empty-view-click')"
             >
-              <slot name="empty" :is-load-failed="failed || isLoadFailed">
+              <slot name="empty" :isLoadFailed="failed || isLoadFailed">
                 <image
                   v-if="emptyImage"
                   class="z-paging-wevu__empty-img"
@@ -1802,6 +1824,9 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   left: 0;
+  overflow: hidden;
+}
+.z-paging-wevu--fill {
   overflow: hidden;
 }
 .z-paging-wevu__layout {

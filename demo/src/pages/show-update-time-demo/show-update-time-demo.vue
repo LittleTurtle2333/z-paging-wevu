@@ -2,7 +2,7 @@
 <template>
 	<view class="content">
 		<!-- 如果需要区别不同页面的最后更新时间，请为不同页面的z-paging的refresher-update-time-key设置不同的字符串 -->
-		<ZPagingWevu ref="paging" v-model="dataList" show-refresher-update-time @query="queryList"
+		<ZPagingWevu :controller="paging" v-model="dataList" show-refresher-update-time @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->

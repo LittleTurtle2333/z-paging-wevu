@@ -3,7 +3,7 @@
 	<view class="content">
 		<!-- :enable-back-to-top="currentIndex===tabIndex" 在微信小程序上可以多加这一句，因为默认是允许点击返回顶部的，但是这个页面有多个scroll-view，会全部返回顶部，所以需要控制是当前index才允许点击返回顶部 -->
 		<!-- 如果当前页已经加载过数据或者当前切换到的tab是当前页，才展示当前页数据（懒加载） -->
-		<ZPagingWevu v-if="firstLoaded || isCurrentPage" ref="paging" v-model="dataList" @query="queryList" :fixed="false">
+		<ZPagingWevu v-if="firstLoaded || isCurrentPage" :controller="paging" v-model="dataList" @query="queryList" :fixed="false">
 			<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 			<view class="item" v-for="(item,index) in dataList" :key="index">
 				<view class="item-title">{{item.title}}</view>

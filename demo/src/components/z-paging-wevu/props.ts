@@ -79,7 +79,7 @@ export interface ZPagingWevuProps {
   delay?: number | string
   /** 请求的最短耗时，单位为毫秒。@defaultValue 0 */
   minDelay?: number | string
-  /** 重新加载前是否自动清空列表。@defaultValue false */
+  /** 重新加载前是否自动清空列表。@defaultValue true */
   autoCleanListWhenReload?: boolean
   /** 重新加载失败时是否自动清空列表。@defaultValue true */
   autoCleanListWhenReloadError?: boolean
@@ -88,6 +88,10 @@ export interface ZPagingWevuProps {
 
   /** 是否仅保留下拉刷新，关闭自动请求、加载更多和空态。@defaultValue false */
   refresherOnly?: boolean
+  /** 列表是否允许滚动（`fixed=false` 的嵌套场景可用它做滚动权移交）。@defaultValue true */
+  scrollable?: boolean
+  /** 是否监听列表触摸方向并触发 `touch-direction-change`。@defaultValue false */
+  watchTouchDirectionChange?: boolean
   /** 是否启用下拉刷新。@defaultValue true */
   refresherEnabled?: boolean
   /** 触发下拉刷新的距离，单位为 px。@defaultValue 40 */
@@ -322,10 +326,12 @@ export const zPagingWevuDefaults = {
   responseDataKey: '',
   delay: 0,
   minDelay: 0,
-  autoCleanListWhenReload: false,
+  autoCleanListWhenReload: true,
   autoCleanListWhenReloadError: true,
   autoScrollToTopWhenReload: true,
   refresherOnly: false,
+  scrollable: true,
+  watchTouchDirectionChange: false,
   refresherEnabled: true,
   refresherThreshold: 40,
   useCustomRefresher: false,

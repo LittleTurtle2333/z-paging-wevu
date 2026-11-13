@@ -1,9 +1,9 @@
 <!-- 在这个文件对每个tab对应的列表进行渲染 -->
 <template>
 	<view class="content">
-		<!-- 这里设置了z-paging加载时禁止自动调用reload方法，自行控制何时reload（懒加载）-->
-		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList" :use-page-scroll="true" :scrollable="false" :hide-empty-view="hideEmptyView"
-			:refresher-enabled="false" @contentHeightChanged="contentHeightChanged" :auto="false" :auto-clean-list-when-reload="false">
+		<!-- 懒加载：当前tab或已加载过的tab才渲染，渲染时由 z-paging 自动触发首次加载 -->
+		<ZPagingWevu v-if="firstLoaded || isCurrentPage" :controller="paging" v-model="dataList" @query="queryList" :use-page-scroll="true" :scrollable="false" :hide-empty-view="hideEmptyView"
+			:refresher-enabled="false" @contentHeightChanged="contentHeightChanged" :auto-clean-list-when-reload="false">
 			<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 			<view class="item" v-for="(item,index) in dataList" :key="index">
 				<view class="item-title">{{item.title}}</view>
@@ -53,12 +53,14 @@ definePageJson({
 	const completeFunc = ref(null);
 
 
+	// 当前组件的列表是否已经被切换到过（用于懒加载）
+	const isCurrentPage = ref(false);
+
 	watch(() => props.currentIndex, (newVal) => {
-		if (newVal === props.tabIndex) {
-			setTimeout(() => {
-				paging.reload();
-			}, 100);
+		if (newVal !== props.tabIndex) {
+			return;
 		}
+		isCurrentPage.value = true;
 	}, {
 		immediate: true
 	});
@@ -99,7 +101,7 @@ definePageJson({
 	const contentHeightChanged = (height) => {
 		const finalHeight = dataList.value.length ? height : 0;
 		// 限制内容最小高度为屏幕可见高度减z-tabs高度。注意，页面中有使用slot="top"插入的view，则此处的minHeight还应该减去slot="top"插入的view的高度
-		const minHeight = wx.getSystemInfoSync().windowHeight - wx.upx2px(80);
+		const minHeight = wx.getSystemInfoSync().windowHeight - (wx.getSystemInfoSync().windowWidth / 750) * 80;
 		emits('heightChanged',Math.max(finalHeight, minHeight));
 	}
 	

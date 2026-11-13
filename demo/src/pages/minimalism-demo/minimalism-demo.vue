@@ -1,17 +1,15 @@
 <!-- 极简写法演示(vue) -->
 <template>
 	<view class="content">
-		<!-- 这里的autowire-query-name、autowire-list-name都可以写在全局配置中，实际上项目中只要写<ZPagingWevu ref="paging"
-		refresher-default-style="none"
-		:refresher-complete-delay="600">即可 -->
-		<!-- autowire-list-name用于设置自动赋值list的名字，autowire-query-name用于设置自动调用query方法的方法名 -->
-		<ZPagingWevu ref="paging" autowire-list-name="zList" autowire-query-name="zQuery"
+		<!-- wevu 版本使用显式 v-model / @query 绑定，不再依赖 autowire -->
+
+		<ZPagingWevu :controller="paging" v-model="zList" @query="zQuery"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="notice">
-					<view>全局设置v-model和@query的绑定对象名，具体写法和说明请查阅demo源码</view>
+					<view>用法与普通模式一致：v-model 绑定列表，@query 绑定查询方法</view>
 				</view>
 				<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 				<DemoTabs :list="tabList" @change="tabsChange"   />
@@ -51,7 +49,7 @@ definePageJson({
 		paging.reload();
 	}
 	
-	const zQuery = (pageNo, pageSize) => {
+	const zQuery = ([pageNo, pageSize]) => {
 		// 组件加载时会自动触发此方法，因此默认页面加载时会自动触发，无需手动调用
 		// 这里的pageNo和pageSize会自动计算好，直接传给服务器即可
 		// 模拟请求服务器获取分页数据，请替换成自己的网络请求

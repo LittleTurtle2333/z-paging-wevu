@@ -14,7 +14,7 @@
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中 -->
 		<template #top>
 			<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
-			<DemoTabs :list="tabList" ref="tabs" :current="current" @change="tabsChange"   />
+			<DemoTabs :list="tabList" :current="current" @change="tabsChange"   />
 		</template>
 		<!-- 因swiper与swiper-item无法封装在不同组件中，因此这边依然需要设置swiper包裹swiper-item -->
 		<swiper style="height: 100%;" :current="current" @transition="swiperTransition" @animationfinish="swiperAnimationfinish">
@@ -47,7 +47,6 @@ definePageJson({
 	
 	
     const swiperItem = ref(null);
-	const tabs = ref(null);
 	
 	// 注意，这个数组是一个二维数组，数组里面包含的是所有tabs的list数组
 	const dataList = ref([])
@@ -61,14 +60,13 @@ definePageJson({
 	}
 	
 	// swiper滑动中
-	const swiperTransition = (e) => {
-		tabs.value.setDx(e.detail.dx);
+	const swiperTransition = () => {
+		// demo-tabs 为简化版组件，不支持跟手下划线动画
 	}
-	
+
 	// swiper滑动结束
 	const swiperAnimationfinish = (e) => {
 		current.value = e.detail.current;
-		tabs.value.unlockDx();
 	}
 	
 	// @query所绑定的方法不要自己调用！！需要刷新列表数据时，只需要调用paging.reload()即可

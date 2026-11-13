@@ -1,7 +1,7 @@
 <!-- 这个文件是虚拟列表中的实际cell -->
 <template>
 	<view class="item">
-		<image class="item-image" mode="aspectFit" src="@/static/boji1.png"></image>
+		<image class="item-image" mode="aspectFit" src="/static/boji1.png"></image>
 		<view class="item-content">
 			<text class="item-title">第{{index + 1}}行</text>
 			<text style="color: red;margin-left: 10rpx;" @click.stop="titleClick(`第${index + 1}行 虚拟列表展示`)">虚拟列表展示</text>

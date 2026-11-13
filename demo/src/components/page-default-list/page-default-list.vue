@@ -63,8 +63,7 @@ const paging = props.controller ?? createPagingController()
 		})
     }
 	
-	// 子组件内使用useZPagingComp
-	defineExpose({ ...useZPagingComp(paging) })
+	// 页面滚动模式下由页面通过 usePagePaging(paging) 接管，此处无需再暴露额外方法
 </script>
 
 <style>

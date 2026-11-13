@@ -1,7 +1,7 @@
 <!-- 使用页面滚动演示(vue3+setup) -->
 <template>
     <view class="content">
-    	<ZPagingWevu ref="paging" v-model="dataList" @query="queryList" :use-page-scroll="true"
+    	<ZPagingWevu :controller="paging" v-model="dataList" @query="queryList" :use-page-scroll="true"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
     		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->

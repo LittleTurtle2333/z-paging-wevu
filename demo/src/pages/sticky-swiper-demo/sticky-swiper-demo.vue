@@ -6,11 +6,11 @@
 <!-- 如果在App中，推荐使用nvue写法，滚动和过渡更流畅，参照sticky-swiper-demo-n -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="pagePaging" @scroll="scroll" :refresher-only="true" :scrollable="scrollable" @query="queryList"
-		refresher-default-style="none"
+		<ZPagingWevu ref="pagePaging" @scroll="scroll" :refresher-only="true" :scrollable="scrollable" use-custom-refresher @on-refresh="queryList"
+		refresher-default-style="none" @refresherStatusChange="refresherStatusChange"
 		:refresher-complete-delay="600">
 			<!-- 自定义下拉刷新view -->
-			<template #refresher="{refresherStatus}">
+			<template #refresher>
 				<CustomRefresher :status="refresherStatus" />
 			</template>
 			<view class="banner-view" style="height: 250rpx;">
@@ -21,13 +21,13 @@
 				<!-- 小程序中直接修改组件style为position: sticky;无效，需要在组件外层套一层view -->
 				<view style="z-index: 100;position: sticky;top :0;">
 					<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
-					<DemoTabs :list="tabList" ref="tabs" :current="current" @change="tabsChange"   />
+					<DemoTabs :list="tabList" :current="current" @change="tabsChange"   />
 				</view>
 				<swiper class="swiper" :current="current" @transition="swiperTransition" @animationfinish="swiperAnimationfinish">
 					<swiper-item class="swiper-item" v-for="(item, index) in tabList" :key="index">
 						<!-- 这里的sticky-swiper-item为demo中为演示用定义的组件，列表及分页代码在sticky-swiper-item组件内 -->
 						<!-- 请注意，sticky-swiper-item非z-paging内置组件，在自己的项目中必须自己创建，若未创建则会报组件不存在的错误 -->
-						<StickySwiperItem :ref="el => swiperItems[index] = el" :tabIndex="index" :currentIndex="current" @setScrollable="setScrollable" @setStickyed="setStickyed" />
+						<StickySwiperItem ref="swiperItems" :tabIndex="index" :currentIndex="current" @setScrollable="setScrollable" @setStickyed="setStickyed" />
 					</swiper-item>
 				</swiper>
 			</view>
@@ -50,12 +50,12 @@ definePageJson({
 	import request from '@/http/request';
 	
 	const swiperItems = ref([]);
-	const tabs = ref(null);
 	const pagePaging = ref(null);
 	
 	const pageHeight = ref(0);
 	const headerHeight = ref(0);
 	const scrollable = ref(true);
+	const refresherStatus = ref('');
 	const list = ref([]);
 	const tabList = ref(['测试1','测试2','测试3','测试4']);
 	const current = ref(0);
@@ -66,16 +66,22 @@ definePageJson({
 		nextTick(() => {
 			const query = wx.createSelectorQuery();
 			query.select('.banner-view').boundingClientRect(data => {
-				headerHeight.value = data.height;
+				if (data) {
+					headerHeight.value = data.height;
+				}
 			}).exec();
 		})
 	})
 	
+	const refresherStatusChange = (status) => {
+		refresherStatus.value = status;
+	}
+
 	const queryList = () => {
 		// 触发了下拉刷新，通过当前tabIndex对应的列表下拉刷新
-		swiperItems.value[current.value].reload(() => {
+		swiperItems.value[current.value]?.reload?.(() => {
 			// 当当前显示的列表刷新结束，结束当前页面的刷新状态
-			pagePaging.value.endRefresh();
+			pagePaging.value?.endRefresh?.();
 		});
 	}
 	
@@ -86,12 +92,12 @@ definePageJson({
 			// 还没吸顶
 			// 禁止子组件的z-paging(scroll-view)滚动，当前页面的z-paging(scroll-view)允许滚动
 			scrollable.value = true;
-			swiperItems.value[current.value].setScrollable(false);
+			swiperItems.value[current.value]?.setScrollable?.(false);
 		} else {
 			// 吸顶了
 			// 允许子组件的z-paging(scroll-view)滚动，当前页面的z-paging(scroll-view)禁止滚动
 			scrollable.value = false;
-			swiperItems.value[current.value].setScrollable(true);
+			swiperItems.value[current.value]?.setScrollable?.(true);
 		}
 	}
 	
@@ -103,7 +109,7 @@ definePageJson({
 	// 子组件设置当前页面进入吸顶状态并禁止滚动
 	const setStickyed = () => {
 		scrollable.value = false;
-		pagePaging.value.scrollToY(headerHeight.value);
+		pagePaging.value?.scrollToY?.(headerHeight.value);
 	}
 	
 	// tabs通知swiper切换
@@ -112,15 +118,14 @@ definePageJson({
 	}
 	
 	// swiper滑动中
-	const swiperTransition = (e) => {
-		tabs.value.setDx(e.detail.dx);
+	const swiperTransition = () => {
+		// demo-tabs 为简化版组件，不支持跟手下划线动画
 	}
-	
+
 	// swiper滑动结束
 	const swiperAnimationfinish = (e) => {
 		current.value = e.detail.current;
-		swiperItems.value[current.value].setScrollable(!scrollable.value);
-		tabs.value.unlockDx();
+		swiperItems.value[current.value]?.setScrollable?.(!scrollable.value);
 	}
 </script>
 

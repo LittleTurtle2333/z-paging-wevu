@@ -1,7 +1,7 @@
 <!-- 自定义返回顶部view演示(vue) -->
 <template>
 	<view class="content">
-		<ZPagingWevu @scroll="scroll" ref="paging" v-model="dataList" :auto-show-back-to-top="true" @query="queryList"
+		<ZPagingWevu @scroll="scroll" :controller="paging" v-model="dataList" :auto-show-back-to-top="true" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->

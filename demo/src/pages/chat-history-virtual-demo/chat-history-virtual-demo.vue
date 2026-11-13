@@ -10,7 +10,7 @@
 		<!-- cell-height-mode：设置虚拟列表模式高度不固定 -->
 		<!-- safe-area-inset-bottom：开启底部安全区域适配 -->
 		<!-- bottom-bg-color：设置slot="bottom"容器的背景色，这里设置为和chat-input-bar的背景色一致 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :use-chat-record-mode="true" :use-virtual-list="true" cell-height-mode="dynamic" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
+		<ZPagingWevu :controller="paging" v-model="dataList" :use-chat-record-mode="true" :use-virtual-list="true" cell-height-mode="dynamic" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
 		@query="queryList" @keyboardHeightChange="keyboardHeightChange" @hidedKeyboard="hidedKeyboard"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">

@@ -1,7 +1,7 @@
 <!-- 延迟加载列表演示(vue) -->
 <template>
 	<!-- 通过:auto="false"禁止默认的自动加载列表行为 -->
-    <ZPagingWevu ref="paging" v-model="dataList" :auto="false" @query="queryList"
+    <ZPagingWevu :controller="paging" v-model="dataList" :auto="false" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->

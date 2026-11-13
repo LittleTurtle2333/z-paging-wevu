@@ -5,7 +5,7 @@
 <template>
 	<view class="content">
 		<!-- 如果页面中的cell高度是固定不变的，则不需要设置cell-height-mode，如果页面中高度是动态改变的，则设置cell-height-mode="dynamic" -->
-		<ZPagingWevu ref="paging" :use-virtual-list="true" use-compatibility-mode :extra-data="extraData" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" 
+		<ZPagingWevu :controller="paging" :use-virtual-list="true" use-compatibility-mode :extra-data="extraData" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" 
 			@query="queryList" @innerCellClick="innerCellClick"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">

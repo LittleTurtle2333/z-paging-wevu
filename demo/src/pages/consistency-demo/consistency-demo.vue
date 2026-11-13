@@ -6,7 +6,7 @@
 	<view class="content">
 		<!-- 非页面滚动时这里的fixed建议设置为true，则无需设置z-paging的高度及其父view的高度 -->
 		<!-- data-key需要绑定一个在切换tab时会跟着改变的且能标识当前切换tab标识的变量 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :data-key="tabIndex" @query="queryList"
+		<ZPagingWevu :controller="paging" v-model="dataList" :paging-data-key="tabIndex" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->

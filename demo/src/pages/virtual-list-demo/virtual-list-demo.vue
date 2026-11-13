@@ -6,7 +6,7 @@
 <template>
 	<view class="content">
 		<!-- 如果页面中的cell高度是固定不变的，则不需要设置cell-height-mode，如果页面中高度是动态改变的，则设置cell-height-mode="dynamic" -->
-		<ZPagingWevu ref="paging" :use-virtual-list="true" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" @query="queryList"
+		<ZPagingWevu :controller="paging" :use-virtual-list="true" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
@@ -20,7 +20,7 @@
 			<!-- 通过slot="cell"插入列表for循环的cell，slot-scope中提供当前for循环的item和index -->
 			<template #cell="{item,index}">
 				<view class="item" @click="itemClick(item,index)">
-					<image class="item-image" mode="aspectFit" src="@/static/boji1.png"></image>
+					<image class="item-image" mode="aspectFit" src="/static/boji1.png"></image>
 					<view class="item-content">
 						<text class="item-title">第{{item.title}}行</text>
 						<text style="color: red;margin-left: 10rpx;">虚拟列表展示</text>
@@ -58,6 +58,11 @@ definePageJson({
 		paging.reload();
 	}
 	
+	// 点击 cell
+	const itemClick = (item, index) => {
+		wx.showToast({ title: `点击了第${index + 1}项`, icon: 'none' })
+	}
+
 	// @query所绑定的方法不要自己调用！！需要刷新列表数据时，只需要调用paging.reload()即可
     const queryList = ([pageNo, pageSize]) => {
 		// 组件加载时会自动触发此方法，因此默认页面加载时会自动触发，无需手动调用

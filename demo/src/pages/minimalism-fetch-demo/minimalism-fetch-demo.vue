@@ -4,7 +4,7 @@
 	<view class="content">
 		<!-- 通过:fetch直接传入列表请求函数即可，默认会调用对应请求参数并且给它传{pageNo, pageSize}两个参数 -->
 		<!-- :fetch的请求函数附加参数可通过:fetch-params传入 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :fetch="queryList" :fetch-params="fetchParams"
+		<ZPagingWevu :controller="paging" v-model="dataList" :fetch="fetchList" :fetch-params="fetchParams"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
@@ -50,6 +50,17 @@ definePageJson({
 		tabIndex.value = index;
 		// 当切换tab或搜索时请调用组件的reload方法，请勿直接调用：queryList方法！！
 		paging.reload();
+	}
+
+	// 组件内部会把 fetch 的结果直接当作分页数组，
+	// 而 demo 的 request 返回 { data: { list } }，因此这里做一次适配。
+	const fetchList = async (params) => {
+		const res = await queryList({
+			pageNo: params.pageNo,
+			pageSize: params.pageSize,
+			...fetchParams.value
+		});
+		return res.data.list;
 	}
 	
 	// 也支持自行实现fetch函数，例如在props中添加 :fetch="fetchFunc"，然后实现：

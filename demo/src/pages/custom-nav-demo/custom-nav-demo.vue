@@ -2,7 +2,7 @@
 <!--  此demo使用了uView的Navbar 自定义导航栏 https://uviewui.com/components/navbar.html -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList"
+		<ZPagingWevu :controller="paging" v-model="dataList" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 将不需要参与滚动的部分，放在slot="top"的view中，如果只有一个标签，可以直接在此标签上写slot="top"，将自定义的导航栏放到里面即可 -->

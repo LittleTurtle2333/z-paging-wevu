@@ -1,13 +1,12 @@
 <!-- 下拉进入二楼演示(vue) -->
 <template>
 	<!-- 下楼进入二楼建议在pages.json中隐藏系统导航栏，使用自定义导航栏，避免二楼被系统导航栏盖住 -->
-    <ZPagingWevu ref="paging" v-model="dataList" :refresher-f2-enabled="true" @query="queryList"
+    <ZPagingWevu :controller="paging" v-model="dataList" :refresher-f2-enabled="true" use-custom-refresher @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 		<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 		<template #top>
-			<DemoNavbar></DemoNavbar>
 			<DemoTabs :list="tabList" @change="tabsChange"   />
 		</template>
 		<!-- 自定义松手显示二楼view（非必须，可根据具体需求定制） -->
@@ -31,7 +30,6 @@
 
 <script setup>
 import CustomF2 from '@/components/custom-f2/custom-f2.vue'
-import DemoNavbar from '@/components/demo-navbar/index.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
 import { createPagingController } from '@/components/z-paging-wevu/types'

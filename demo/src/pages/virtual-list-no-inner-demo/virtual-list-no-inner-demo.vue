@@ -5,7 +5,7 @@
 	<view class="content">
 		<!-- 如果页面中的cell高度是固定不变的，则不需要设置cell-height-mode，如果页面中高度是动态改变的，则设置cell-height-mode="dynamic" -->
 		<!-- 原先的v-model修改为@virtualListChange="virtualListChange"并赋值处理后的虚拟列表 -->
-		<ZPagingWevu ref="paging" :use-virtual-list="true" :force-close-inner-list="true" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" @virtualListChange="virtualListChange" @query="queryList"
+		<ZPagingWevu :controller="paging" :use-virtual-list="true" :force-close-inner-list="true" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" @virtualListChange="virtualListChange" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
@@ -19,7 +19,7 @@
 			<!-- :id="`zp-id-${item.zp_index}`"必须这么写，不能改动 -->
 			<!-- 这里for循环的index不是数组中真实的index了，请使用item.zp_index获取真实的index -->
 			<view class="item" :id="`zp-id-${item.zp_index}`" :key="item.zp_index" v-for="(item,index) in virtualList" @click="itemClick(item,item.zp_index)">
-				<image class="item-image" mode="aspectFit" src="@/static/boji1.png"></image>
+				<image class="item-image" mode="aspectFit" src="/static/boji1.png"></image>
 				<view class="item-content">
 					<text class="item-title">第{{item.title}}行</text>
 					<text style="color: red;margin-left: 10rpx;">虚拟列表展示</text>
@@ -61,6 +61,11 @@ definePageJson({
 		virtualList.value = vList;
 	}
 	
+	// 点击 cell
+	const itemClick = (item, index) => {
+		wx.showToast({ title: `点击了第${index + 1}项`, icon: 'none' })
+	}
+
 	// @query所绑定的方法不要自己调用！！需要刷新列表数据时，只需要调用paging.reload()即可
     const queryList = ([pageNo, pageSize]) => {
 		// 组件加载时会自动触发此方法，因此默认页面加载时会自动触发，无需手动调用

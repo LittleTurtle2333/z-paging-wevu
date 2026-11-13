@@ -2,7 +2,7 @@
 <template>
 	<view class="nomore">
 		<!-- 这里的图片请换成自己项目的图片 -->
-		<image class="nomore-image" mode="aspectFit" src="@/static/no_more.png"></image>
+		<image class="nomore-image" mode="aspectFit" src="/static/no_more.png"></image>
 		<text class="nomore-text">已经到达宇宙尽头啦~</text>
 	</view>
 </template>

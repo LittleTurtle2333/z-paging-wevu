@@ -1,10 +1,6 @@
 <template>
 	<view class="custom-f2">
 		<view class="custom-f2-main">
-			
-			<DemoNavbar></DemoNavbar>
-			
-			
 			<scroll-view scroll-y class="custom-f2-list-container">
 				<view class="custom-f2-list">
 					<view class="custom-f2-item" v-for="index of 16" :key="index">
@@ -21,11 +17,8 @@
 </template>
 
 <script>
-	import DemoNavbar from '@/components/demo-navbar/index.vue'
-
 	export default {
 		name:"custom-f2",
-		components: { DemoNavbar },
 		data() {
 			return {
 				

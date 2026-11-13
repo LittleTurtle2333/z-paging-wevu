@@ -1,9 +1,9 @@
 <!-- 基于z-paging封装个性化分页组件演示，可减少大量重复代码 -->
 <template>
 	<!-- 这边统一设置z-paging，在页面中使用时就不用重复写 -->
-	<!-- 如果要在这里设置极简写法，这里的ref不能设置为paging，设置为其他名即可，因为极简写法会修改/调用第一个包含了ref="paging"的付view中的list和query -->
+	<!-- 如果要在这里设置极简写法，这里的ref不能设置为paging，设置为其他名即可，因为极简写法会修改/调用第一个包含了:controller="paging"的付view中的list和query -->
 	<!-- 极简写法在下方设置autowire-list-name="xxx" autowire-query-name="xxx"即可，与minimalism-demo.vue中的一致，并且不用再从这个组件转发到页面，只要遵循上一行的规则即可 -->
-	<ZPagingWevu ref="paging" v-model="list" :fixed="true" :auto-show-back-to-top="true" refresher-threshold="160rpx" @query="queryList"
+	<ZPagingWevu :controller="paging" v-model="list" :fixed="true" :auto-show-back-to-top="true" refresher-threshold="160rpx" use-custom-refresher @query="queryList" @refresherStatusChange="refresherStatusChange"
 		:useVirtualList="useVirtualList" :useInnerList="useInnerList" :cellKeyName="cellKeyName" :innerListStyle="innerListStyle" :preloadPage="preloadPage" :cellHeightMode="cellHeightMode" :virtualScrollFps="virtualScrollFps"
 		:loading-more-loading-text="loadingMoreLoadingText">
 		
@@ -32,7 +32,7 @@
 
 		<!-- 这里通过slot统一自定义了下拉刷新view和没有更多数据view，页面那边就不用再写下面两行了 -->
 		<!-- 自定义下拉刷新view(如果use-custom-refresher为true且不设置下面的slot="refresher"，此时不用获取refresherStatus，会自动使用z-paging自带的下拉刷新view) -->
-		<template #refresher="{refresherStatus}">
+		<template #refresher>
 			<CustomRefresher :status="refresherStatus" />
 		</template>
 		<!-- 自定义没有更多数据view -->
@@ -56,11 +56,23 @@ definePageJson({
 })
 	import { ref, watch } from 'wevu';
 	
-	const emits = defineEmits(['input', 'query'])
-	
+	const emits = defineEmits(['input', 'query', 'update:modelValue'])
+
 	const props = defineProps({
+		// 分页控制器，由页面创建后传入，用于把 reload/complete 透传给内部 z-paging
+		controller: {
+			type: Object,
+			default: null
+		},
 		// 用于接收父组件v-model所绑定的list的值
 		value: {
+			type: Array,
+			default: function() {
+				return [];
+			}
+		},
+		// vue3 的 v-model 绑定值
+		modelValue: {
 			type: Array,
 			default: function() {
 				return [];
@@ -112,33 +124,28 @@ definePageJson({
         'zh-Hant': '繁体的加载中'
     };
 
-    const paging = createPagingController();
-    let list = ref([]);
-	
-	watch(() => props.value, (newVal) => {
-		list.value = newVal;
-	})
-	// #ifdef VUE3
-	watch(() => props.modelValue, (newVal) => {
-		list.value = newVal;
-	})
-	// #endif
+    const paging = props.controller ?? createPagingController();
+	const refresherStatus = ref('');
+	const refresherStatusChange = (status) => {
+		refresherStatus.value = status;
+	};
+	// 小程序的跨组件 props 会深拷贝数组，若再把 props 回写到 list 会与 v-model 相互触发形成死循环，
+	// 因此这里只把传入值当作初始值，列表数据完全由内部 z-paging 驱动。
+    const list = ref(Array.isArray(props.modelValue) ? props.modelValue : []);
 	
 	watch(() => list.value, (newVal) => {
 		emits('input', newVal);
-		// #ifdef VUE3
 		emits('update:modelValue', newVal);
-		// #endif
 	})
 	
 	// 监听z-paging的@query事件，通过emit传递给页面
-    const queryList = ([pageNo, pageSize]) => {
-		emits('query', pageNo, pageSize);
-    }
+   const queryList = ([pageNo, pageSize, from]) => {
+		emits('query', pageNo, pageSize, from);
+   }
 	
 	// 接收页面触发的reload方法，传给z-paging
-	const reload = (data) => {
-		paging.reload(data);
+	const reload = (animate) => {
+		paging.reload(animate);
 	}
 	
 	// 接收页面触发的complete方法，传给z-paging

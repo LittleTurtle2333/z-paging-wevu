@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'wevu'
+import { ref, watch } from 'wevu'
 
 /**
  * 轻量 tabs：替代原 demo 依赖的 z-tabs（uni_modules），
@@ -17,6 +17,12 @@ const emit = defineEmits<{
 }>()
 
 const active = ref(props.current)
+
+watch(() => props.current, (value) => {
+  if (value !== active.value) {
+    active.value = value
+  }
+})
 
 function select(index: number) {
   if (active.value === index) {

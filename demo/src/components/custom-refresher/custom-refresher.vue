@@ -2,7 +2,7 @@
 <template>
 	<view class="refresher-container">
 		<!-- 这里的图片请换成自己项目的图片 -->
-		<image class="refresher-image" mode="aspectFit" src="@/static/refresher_loading.gif"></image>
+		<image class="refresher-image" mode="aspectFit" src="/static/refresher_loading.gif"></image>
 		<text class="refresher-text">{{statusText}}</text>
 	</view>
 </template>
@@ -32,7 +32,7 @@ definePageJson({
 			'loading': '正在努力刷新中...',
 			'complete': '刷新成功啦~'
 		};
-		return statusTextMap[this.status];
+		return statusTextMap[props.status];
 	})
 </script>
 

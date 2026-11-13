@@ -2,7 +2,7 @@
 <template>
 	<view class="content">
 		<!-- 此处为了让reload时不自动滚动到顶部，需要设置auto-clean-list-when-reload和auto-scroll-to-top-when-reload为false，即在reload时关闭自动清空数组和自动滚动到顶部 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :auto-clean-list-when-reload="false"
+		<ZPagingWevu :controller="paging" v-model="dataList" :auto-clean-list-when-reload="false" use-custom-refresher
 			:auto-scroll-to-top-when-reload="false" @refresherStatusChange="refresherStatusChange" @query="queryList"
 		refresher-default-style="none"
 		:refresher-complete-delay="600">

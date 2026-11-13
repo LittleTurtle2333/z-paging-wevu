@@ -1,8 +1,8 @@
 <!-- 自定义下拉刷新与上拉加载演示(vue) -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList"
-		refresher-default-style="none"
+		<ZPagingWevu :controller="paging" v-model="dataList" @query="queryList" use-custom-refresher
+		refresher-default-style="none" @refresherStatusChange="refresherStatusChange"
 		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
@@ -14,7 +14,7 @@
 
 			<!-- 注意注意注意！！字节跳动小程序中自定义下拉刷新不支持slot-scope，将导致custom-refresher无法显示 -->
 			<!-- 如果是字节跳动小程序，请参照sticky-demo.vue中的写法，此处使用slot-scope是为了减少data中无关变量声明，降低依赖 -->
-			<template #refresher="{refresherStatus}">
+			<template #refresher>
 				<!-- 此处的custom-refresh为demo中自定义的组件，非z-paging的内置组件，请在实际项目中自行创建。这里插入什么view，下拉刷新就显示什么view -->
 				<CustomRefresher :status="refresherStatus" />
 			</template>
@@ -61,6 +61,12 @@ definePageJson({
 		// 当切换tab或搜索时请调用组件的reload方法，请勿直接调用：queryList方法！！
 		paging.reload();
 	}
+
+	const refresherStatus = ref('');
+	const refresherStatusChange = (status) => {
+		refresherStatus.value = status;
+	}
+
 	
 	// @query所绑定的方法不要自己调用！！需要刷新列表数据时，只需要调用paging.reload()即可
     const queryList = ([pageNo, pageSize]) => {
