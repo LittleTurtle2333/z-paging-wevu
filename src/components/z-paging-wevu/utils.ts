@@ -1,5 +1,5 @@
 import type { ZPagingWevuText } from './props'
-import { getWindowMetrics } from './window'
+import { getSystemLanguage, getWindowMetrics } from './window'
 
 export function vpText(value: ZPagingWevuText | undefined, fallback = ''): string {
   if (typeof value === 'string') {
@@ -8,15 +8,14 @@ export function vpText(value: ZPagingWevuText | undefined, fallback = ''): strin
   if (!value || typeof value !== 'object') {
     return fallback
   }
-  let language = 'zh-Hans'
-  try {
-    language = wx.getSystemInfoSync().language || language
-  }
-  catch {
-    // Keep the default locale in non-WeChat test environments.
-  }
+  const language = getSystemLanguage()
+  const normalized = language.toLowerCase().replace(/_/g, '-')
+  const locale = normalized.startsWith('zh')
+    ? (/tw|hk|hant/.test(normalized) ? 'zh-Hant' : 'zh-Hans')
+    : (normalized.startsWith('en') ? 'en' : 'zh-Hans')
   return (
     value[language]
+    ?? value[locale]
     ?? value['zh-Hans']
     ?? value.en
     ?? Object.values(value)[0]

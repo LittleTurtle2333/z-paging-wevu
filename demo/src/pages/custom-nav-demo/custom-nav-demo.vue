@@ -1,5 +1,5 @@
 <!-- 自定义导航栏演示 -->
-<!--  此demo使用了uView的Navbar 自定义导航栏 https://uviewui.com/components/navbar.html -->
+<!-- 自定义导航栏由本项目自行实现（components/demo-navbar），不依赖 uView 等 UI 库 -->
 <template>
 	<view class="content">
 		<ZPagingWevu :controller="paging" v-model="dataList" @query="queryList"
@@ -7,8 +7,9 @@
 		:refresher-complete-delay="600">
 			<!-- 将不需要参与滚动的部分，放在slot="top"的view中，如果只有一个标签，可以直接在此标签上写slot="top"，将自定义的导航栏放到里面即可 -->
 			<template #top>
+				<!-- 页面已在 definePageJson 中开启 navigationStyle: 'custom'，这里接管系统导航栏 -->
 				<DemoNavbar>
-					<view class="slot-wrap" style="color: white;font-size: 26rpx;" @click="backClick">
+					<view class="slot-wrap" @click="backClick">
 						这是一个自定义导航栏，点击返回上级页面
 					</view>
 				</DemoNavbar>
@@ -33,6 +34,8 @@ import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '自定义导航栏演示',
+  // 使用自定义导航栏时必须关闭系统导航栏，否则会出现两条导航栏
+  navigationStyle: 'custom',
 })
 	import { ref } from 'wevu';
 	import request from '@/http/request';
@@ -75,13 +78,25 @@ definePageJson({
 	
 	// 点击了返回上一页
 	const backClick = () => {
-		wx.navigateBack({
-			delta: 1
-		})
+		// 直接 reLaunch 进来时没有页面栈，退回首页，避免点击无反应
+		if (getCurrentPages().length > 1) {
+			wx.navigateBack({
+				delta: 1
+			})
+			return
+		}
+		wx.reLaunch({ url: '/pages/index/index' })
 	}
 </script>
 
 <style>
+	.slot-wrap {
+		font-size: 24rpx;
+		line-height: 1.4;
+		color: #333333;
+		text-align: center;
+	}
+
 	.item {
 		position: relative;
 		height: 150rpx;

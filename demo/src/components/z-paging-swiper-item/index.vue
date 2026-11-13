@@ -42,6 +42,7 @@ const list = ref<unknown[]>([])
 const firstLoaded = ref(false)
 const pageNo = ref(1)
 const noMore = ref(false)
+const loadingMore = ref(false)
 let loadTimer: ReturnType<typeof setTimeout> | null = null
 
 function currentResult(): ZPagingWevuResult {
@@ -59,6 +60,15 @@ function query(from: ZPagingWevuQueryFrom) {
   return Promise.resolve(currentResult())
 }
 
+/** 滚动到底部时加载下一页（每个 tab 独立分页） */
+function handleReachBottom() {
+  if (loadingMore.value || noMore.value || !firstLoaded.value) {
+    return
+  }
+  loadingMore.value = true
+  void query('load-more')
+}
+
 function reload(_animate?: boolean) {
   pageNo.value = 1
   noMore.value = false
@@ -67,6 +77,7 @@ function reload(_animate?: boolean) {
 }
 
 function complete(data?: unknown, success = true): Promise<ZPagingWevuResult> {
+  loadingMore.value = false
   firstLoaded.value = true
   if (!success || !Array.isArray(data)) {
     return Promise.resolve(currentResult())
@@ -111,14 +122,20 @@ defineExpose({ reload, complete })
 </script>
 
 <template>
-  <view class="zp-swiper-item-container">
+  <!-- 每个 tab 需要独立的滚动容器，否则 swiper-item 高度固定为 100% 时内容无法滚动 -->
+  <scroll-view
+    class="zp-swiper-item-container"
+    scroll-y
+    :lower-threshold="60"
+    @scrolltolower="handleReachBottom"
+  >
     <slot name="header" />
     <slot />
     <template v-if="useInnerList">
       <slot name="cell" v-for="(item, index) in list" :item="item" :index="index" />
     </template>
     <slot name="footer" />
-  </view>
+  </scroll-view>
 </template>
 
 <style scoped>

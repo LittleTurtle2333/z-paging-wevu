@@ -34,8 +34,10 @@
 </template>
 
 <script>
-	// 获取系统状态栏的高度
-	let systemInfo = wx.getSystemInfoSync();
+	// 获取系统状态栏的高度（getSystemInfoSync 已废弃，拆成 window + device 两部分）
+	const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
+	const deviceInfo = typeof wx.getDeviceInfo === 'function' ? wx.getDeviceInfo() : {};
+	let systemInfo = { ...windowInfo, ...deviceInfo };
 	let menuButtonInfo = {};
 	// 如果是小程序，获取右上角胶囊的尺寸信息，避免导航栏右侧内容与胶囊重叠(支付宝小程序非本API，尚未兼容)
 	// #ifdef MP-WEIXIN || MP-BAIDU || MP-TOUTIAO || MP-QQ
@@ -236,7 +238,7 @@
 			},
 			// rpx => px
 			rpx2px(rpx) {
-				return (wx.getSystemInfoSync().windowWidth / 750) * rpx;
+				return (wx.getWindowInfo().windowWidth / 750) * rpx;
 			}
 		}
 	};

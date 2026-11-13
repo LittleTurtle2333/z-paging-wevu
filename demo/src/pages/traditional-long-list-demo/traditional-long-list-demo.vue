@@ -70,12 +70,15 @@
 <style>
 	.top{
 		position: fixed;
-		top: 80rpx;
+		top: 0;
+		left: 0;
+		right: 0;
 		background-color: white;
 		z-index: 1000;
 	}
 	.list{
-		margin-top: 80rpx;
+		/* 给固定定位的 tabs 让出高度，避免首条数据被 tabs 盖住 */
+		padding-top: 96rpx;
 	}
 	.item {
 		position: relative;

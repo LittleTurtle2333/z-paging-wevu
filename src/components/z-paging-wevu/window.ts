@@ -18,11 +18,12 @@ export function getWindowMetrics(): ZPagingWevuWindowMetrics {
     return cachedMetrics
   }
 
+  // 只用 getWindowInfo：wx.getSystemInfoSync 已在基础库 3.x 标记废弃并会打印警告
   let info: Partial<WechatMiniprogram.WindowInfo> | undefined
   try {
     info = typeof wx.getWindowInfo === 'function'
       ? wx.getWindowInfo()
-      : wx.getSystemInfoSync() as unknown as WechatMiniprogram.WindowInfo
+      : undefined
   }
   catch {
     info = undefined
@@ -44,4 +45,23 @@ export function getWindowMetrics(): ZPagingWevuWindowMetrics {
 /** 横竖屏或窗口尺寸变化后，由调用方主动清除缓存。 */
 export function resetWindowMetrics(): void {
   cachedMetrics = null
+}
+
+/**
+ * 读取系统语言（例如 zh_CN / zh_TW / en）。
+ * 使用 getAppBaseInfo，避免已废弃的 wx.getSystemInfoSync 触发告警。
+ */
+export function getSystemLanguage(): string {
+  try {
+    const info = typeof wx.getAppBaseInfo === 'function'
+      ? wx.getAppBaseInfo()
+      : undefined
+    if (info?.language) {
+      return info.language
+    }
+  }
+  catch {
+    // 非微信环境忽略
+  }
+  return 'zh_CN'
 }

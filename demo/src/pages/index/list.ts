@@ -84,7 +84,7 @@ export const demoList: DemoEntry[] = [
   {
     title: '自定义导航栏演示',
     file: 'custom-nav-demo',
-    subTitle: '使用了uView的自定义导航栏组件',
+    subTitle: '页面自行实现自定义导航栏，并关闭系统导航栏',
   },
   {
     title: '聊天记录模式演示',

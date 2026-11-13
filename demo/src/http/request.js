@@ -58,11 +58,14 @@ function _queryList(data, listCount, showNews = false ,random = false, showChat 
 		console.info(`请求参数：【pageNo:${pageNo},pageSize:${pageSize}】`)
 		console.log('%c----------请求结束--------\n', 'color:green;');
 	}
-	wx.showLoading({
-		title: '加载中...'
-	})
 	if (pageNo == 0) {
 		pageNo = 1;
+	}
+	// 只有第一页（首次加载/刷新）才显示全局 loading，加载更多时交给列表自身的加载提示，避免遮挡列表
+	if (pageNo === 1) {
+		wx.showLoading({
+			title: '加载中...'
+		})
 	}
 	var totalPagingList = [];
 	for (let i = 0; i < listCount; i++) {

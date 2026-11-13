@@ -64,8 +64,40 @@
 .z-paging-wevu--fixed .z-paging-wevu__content {
   min-height: 100%;
 }
-.z-paging-wevu--chat .z-paging-wevu__content {
+/**
+ * 聊天记录模式：与原版一致，倒置的是 scroll-view 本身（不是内容层）。
+ * 只倒置内容层时内容不足一屏会贴住顶部、超过一屏时滚动位置也整体错位；
+ * 倒置滚动区才能让 list[0] 稳定落在视觉底部。
+ */
+.z-paging-wevu--chat .z-paging-wevu__scroll {
   transform: scaleY(-1);
+}
+/* 内置节点（加载中 / 空数据 / 加载更多 / 下拉刷新）需要各自反转回来，否则文字是倒的 */
+.z-paging-wevu--chat .z-paging-wevu__loading,
+.z-paging-wevu--chat .z-paging-wevu__empty,
+.z-paging-wevu--chat .z-paging-wevu__chat-loading,
+.z-paging-wevu--chat .z-paging-wevu__chat-no-more,
+.z-paging-wevu--chat .z-paging-wevu__more,
+.z-paging-wevu--chat .z-paging-wevu__refresher,
+.z-paging-wevu--chat .z-paging-wevu__refresher-hint {
+  transform: scaleY(-1);
+}
+/* 聊天记录模式顶部加载态：与原版一致的居中转圈，不带文案 */
+.z-paging-wevu__chat-loading,
+.z-paging-wevu__chat-no-more {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+}
+.z-paging-wevu__chat-loading .z-paging-wevu__refresher-spinner {
+  margin-right: 0;
+}
+/* 末尾哨兵：仅用于交集观察，不占可见高度 */
+.z-paging-wevu__sentinel {
+  width: 100%;
+  height: 1px;
 }
 .z-paging-wevu__refresher,
 .z-paging-wevu__refresher-hint {
@@ -77,6 +109,15 @@
   justify-content: center;
   transition-property: height;
   transition-timing-function: ease-out;
+}
+/* 内层容器保持自定义刷新视图的自然高度，用于测量真实高度 */
+.z-paging-wevu__refresher-inner {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 .z-paging-wevu__refresher-hint {
   width: 100%;
@@ -121,6 +162,14 @@
   margin-top: 6rpx;
   font-size: 20rpx;
   text-align: center;
+}
+/* 内置文案层高度固定为触发阈值，最后更新时间改为同行展示，避免第二行被裁掉 */
+.z-paging-wevu__refresher-hint .z-paging-wevu__refresher-time {
+  flex-basis: auto;
+  margin-top: 0;
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  text-align: left;
 }
 .z-paging-wevu__loading,
 .z-paging-wevu__empty {

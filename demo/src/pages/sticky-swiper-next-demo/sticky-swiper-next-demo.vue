@@ -48,9 +48,9 @@ definePageJson({
 	const pagePaging = ref(null);
 		
     // rpx => px（微信小程序没有 wx.upx2px）
-    const rpx2px = (rpx) => (wx.getSystemInfoSync().windowWidth / 750) * rpx;
+    const rpx2px = (rpx) => (wx.getWindowInfo().windowWidth / 750) * rpx;
     // 先给一个可用高度，否则 swiper 高度为 0 时子组件内容测不到高度，heightChanged 永远不会触发
-    const swiperHeight = ref(wx.getSystemInfoSync().windowHeight - rpx2px(80));
+    const swiperHeight = ref(wx.getWindowInfo().windowHeight - rpx2px(80));
 	const refresherStatus = ref('');
 	let tabIndex = ref(0);
 	const tabList = ref(['测试1','测试2','测试3','测试4']);
@@ -93,7 +93,7 @@ definePageJson({
 		if(height === 0){
 			// 默认swiper高度为屏幕可用高度-tabsView高度-slot="top"内view的高度
 			// 注意：rpx2px(80)不是固定的，它等于slot="top"内view的高度，如果slot="top"内view的高度不为80rpx，则需要修改这个值
-			height = wx.getSystemInfoSync().windowHeight - rpx2px(80);
+			height = wx.getWindowInfo().windowHeight - rpx2px(80);
 		}
 		swiperHeight.value = height;
 	}

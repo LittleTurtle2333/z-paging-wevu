@@ -61,7 +61,7 @@ definePageJson({
 	const current = ref(0);
 	
 	onLoad(() => {
-		pageHeight.value = wx.getSystemInfoSync().windowHeight;
+		pageHeight.value = wx.getWindowInfo().windowHeight;
 		
 		nextTick(() => {
 			const query = wx.createSelectorQuery();

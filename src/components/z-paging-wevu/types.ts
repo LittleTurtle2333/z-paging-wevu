@@ -1,3 +1,6 @@
+import type { ZPagingWevuLocale, ZPagingWevuLocaleInput } from './locale'
+import { getPagingLocale } from './locale'
+
 export type ZPagingWevuQueryFrom
   = 'user-pull-down' | 'reload' | 'refresh' | 'load-more'
 export type ZPagingWevuLoadMoreType = 'click' | 'toBottom'
@@ -78,6 +81,10 @@ export interface ZPagingWevuApi {
     scrollToBottom?: boolean,
     animate?: boolean,
   ) => void
+  /** 切换组件内置文案语言（'auto' 为跟随系统） */
+  setLocale: (locale: ZPagingWevuLocaleInput) => void
+  /** 获取当前组件内置文案语言 */
+  getLocale: () => ZPagingWevuLocale
   addKeyboardHeightChangeListener: () => void
 
   updatePageScrollTop: (scrollTop: number) => void
@@ -132,6 +139,8 @@ function createNoopApi(): ZPagingWevuApi {
     updateVirtualListRender: noop,
     doChatRecordLoadMore: noop,
     addChatRecordData: noop,
+    setLocale: noop,
+    getLocale: () => getPagingLocale(),
     addKeyboardHeightChangeListener: noop,
     updatePageScrollTop: noop,
     updatePageScrollTopHeight: noop,
@@ -226,6 +235,8 @@ export function createPagingController(): ZPagingWevuController {
       scrollToBottom?: boolean,
       animate?: boolean,
     ) => call('addChatRecordData', data, scrollToBottom, animate),
+    setLocale: (locale: ZPagingWevuLocaleInput) => call('setLocale', locale),
+    getLocale: () => call('getLocale'),
     addKeyboardHeightChangeListener: () =>
       call('addKeyboardHeightChangeListener'),
     updatePageScrollTop: (scrollTop: number) =>

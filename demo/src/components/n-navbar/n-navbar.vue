@@ -12,8 +12,8 @@
 </template>
 
 <script>
-	// 获取系统状态栏的高度
-	let systemInfo = wx.getSystemInfoSync();
+	// 获取系统状态栏的高度（getSystemInfoSync 已废弃）
+	let systemInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
 	export default {
 		name:"n-navbar",
 		props: {

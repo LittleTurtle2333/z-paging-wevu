@@ -29,21 +29,33 @@ export function useVirtualList(options: VpVirtualOptions) {
   const renderList = ref<VpVirtualCell[]>([])
   const placeholderTop = ref(0)
   const placeholderBottom = ref(0)
-  const measuredHeight = ref(0)
   const heights = new Map<number, number>()
 
   function defaultHeight() {
-    return Math.max(
-      1,
-      vpPx(options.getFixedCellHeight(), 0) || measuredHeight.value || 60,
-    )
+    return Math.max(1, vpPx(options.getFixedCellHeight(), 0) || 60)
+  }
+
+  /**
+   * 动态高度模式下，未渲染/未测量的 cell 用「已测量高度的均值」估算。
+   * 之前用「最后一次测量的高度」估算，首屏或跨段滚动时偏差极大，
+   * 会导致占位高度算错、列表位置跳变。
+   */
+  function averageHeight() {
+    if (!heights.size) {
+      return defaultHeight()
+    }
+    let sum = 0
+    heights.forEach((height) => {
+      sum += height
+    })
+    return Math.max(1, sum / heights.size)
   }
 
   function heightAt(index: number) {
     if (options.getCellHeightMode() === 'fixed') {
       return defaultHeight()
     }
-    return heights.get(index) || measuredHeight.value || defaultHeight()
+    return heights.get(index) ?? averageHeight()
   }
 
   function emitRenderList() {
@@ -136,10 +148,35 @@ export function useVirtualList(options: VpVirtualOptions) {
 
   function setCellHeight(index: number, height: number) {
     if (height > 0) {
-      measuredHeight.value = height
       heights.set(index, height)
       update()
     }
+  }
+
+  /**
+   * 批量写入测量结果（一次 SelectorQuery 量完当前所有渲染 cell）。
+   *
+   * 每个 index 只记录一次：占位高度会跟着测量结果变化，
+   * 一旦允许覆盖已有高度，就会出现「测量 → 重算占位 → 位置变化 → 再测量得到新值」
+   * 的死循环，表现为列表原地抖动。已测量过的 cell 直接跳过。
+   */
+  function setCellHeights(entries: Array<{ index: number, height: number }>) {
+    let changed = false
+    entries.forEach(({ index, height }) => {
+      if (height <= 0 || heights.has(index)) {
+        return
+      }
+      heights.set(index, height)
+      changed = true
+    })
+    if (changed) {
+      update()
+    }
+    return changed
+  }
+
+  function hasCellHeight(index: number) {
+    return heights.has(index)
   }
 
   function didUpdateVirtualListCell(index: number, height?: number) {
@@ -190,6 +227,8 @@ export function useVirtualList(options: VpVirtualOptions) {
     placeholderBottom,
     update,
     setCellHeight,
+    setCellHeights,
+    hasCellHeight,
     didUpdateVirtualListCell,
     didDeleteVirtualListCell,
     doInsertVirtualListItem,

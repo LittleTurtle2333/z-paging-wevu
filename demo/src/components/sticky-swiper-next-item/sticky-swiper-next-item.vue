@@ -101,7 +101,7 @@ definePageJson({
 	const contentHeightChanged = (height) => {
 		const finalHeight = dataList.value.length ? height : 0;
 		// 限制内容最小高度为屏幕可见高度减z-tabs高度。注意，页面中有使用slot="top"插入的view，则此处的minHeight还应该减去slot="top"插入的view的高度
-		const minHeight = wx.getSystemInfoSync().windowHeight - (wx.getSystemInfoSync().windowWidth / 750) * 80;
+		const minHeight = wx.getWindowInfo().windowHeight - (wx.getWindowInfo().windowWidth / 750) * 80;
 		emits('heightChanged',Math.max(finalHeight, minHeight));
 	}
 	
