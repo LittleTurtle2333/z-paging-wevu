@@ -831,7 +831,14 @@ function scrollToY(y: number, offset = 0, animate = false) {
     wx.pageScrollTo({ scrollTop: target, duration: animate ? 100 : 0 })
     return
   }
-  scrollViewTop.value = scrollTop.value
+  /**
+   * `scroll-top` 是受控值，只有「值发生变化」时 scroll-view 才会滚动。
+   * 受控值不一定跟随用户手势（`@scroll` 只同步了 scrollTop），
+   * 所以先给一个与目标不同的中间值，确保这次设置一定被 scroll-view 感知。
+   */
+  const current = scrollTop.value
+  const seed = current === target ? (target === 0 ? 1 : target - 1) : current
+  scrollViewTop.value = seed
   setTimeout(() => {
     scrollViewTop.value = target
   }, 0)
