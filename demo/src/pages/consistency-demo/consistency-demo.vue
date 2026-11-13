@@ -6,7 +6,9 @@
 	<view class="content">
 		<!-- 非页面滚动时这里的fixed建议设置为true，则无需设置z-paging的高度及其父view的高度 -->
 		<!-- data-key需要绑定一个在切换tab时会跟着改变的且能标识当前切换tab标识的变量 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :data-key="tabIndex" @query="queryList">
+		<ZPagingWevu ref="paging" v-model="dataList" :data-key="tabIndex" @query="queryList"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 			<template #top>
@@ -24,8 +26,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '保证数据一致性演示',

@@ -33,11 +33,11 @@
 </template>
 
 <script setup>
-import ZPagingSwiper from 'zp/components/z-paging-swiper/index.vue'
-import ZPagingSwiperItem from 'zp/components/z-paging-swiper-item/index.vue'
+import ZPagingSwiper from '@/components/z-paging-swiper/index.vue'
+import ZPagingSwiperItem from '@/components/z-paging-swiper-item/index.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '滑动切换选项卡演示(简化写法)',

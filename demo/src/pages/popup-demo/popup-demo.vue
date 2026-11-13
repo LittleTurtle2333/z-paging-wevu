@@ -6,7 +6,9 @@
 			<!-- 在弹窗内使用z-paging时，z-paging的父view必须确定宽高（或者z-paging本身确定宽高） -->
 			<view style="height: 700rpx;width: 500rpx;">
 				<!-- 设置fixed=false代表z-paging非铺满全屏，此时z-paging高度未确定，其父view或z-paging本身必须确定宽高 -->
-				<ZPagingWevu v-if="showPaging" ref="paging" :fixed="false" v-model="dataList" @query="queryList">
+				<ZPagingWevu v-if="showPaging" ref="paging" :fixed="false" v-model="dataList" @query="queryList"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 					<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 					<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 					<template #top>
@@ -27,8 +29,8 @@
 <script setup>
 import PopUp from '@/components/pop-up/pop-up.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '在弹窗内使用z-paging演示',

@@ -6,7 +6,9 @@
 	<view class="content">
 		<!-- 如果页面中的cell高度是固定不变的，则不需要设置cell-height-mode，如果页面中高度是动态改变的，则设置cell-height-mode="dynamic" -->
 		<ZPagingWevu ref="paging" :use-virtual-list="true" use-compatibility-mode :extra-data="extraData" :cell-height-mode="tabIndex===0?'fixed':'dynamic'" 
-			@query="queryList" @innerCellClick="innerCellClick">
+			@query="queryList" @innerCellClick="innerCellClick"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="header">列表总数据量：10万条</view>
@@ -25,8 +27,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '虚拟列表演示(兼容写法)',

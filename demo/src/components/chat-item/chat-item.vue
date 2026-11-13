@@ -24,8 +24,8 @@
 </template>
 
 <script setup>
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: 'chat-item',

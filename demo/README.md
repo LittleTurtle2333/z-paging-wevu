@@ -30,6 +30,14 @@ pnpm demo:build
 | `u-navbar` | uview-plus | `@/components/demo-navbar` |
 | nvue 变体 | 11 个 `-n` 页面 | 未移植（微信小程序无 nvue） |
 
+## 组件源码同步
+
+`src/components/z-paging-wevu` 等目录是仓库根 `src/components/` 的副本，由 `scripts/sync-source.mjs` 生成，**不要手改**。
+
+必须复制进 `demo/src` 而不是直接引用仓库根源码：weapp-vite 会把 `srcRoot` 之外的 SFC 当作外部组件单独产出，`scoped slot` 的 owner 链路会失效，表现为 `<template #top>` 里的内容（如 tab 栏）不渲染。
+
+`pnpm demo:dev` 和 `pnpm demo:build` 都会先执行同步，组件改动后重新跑一次即可。
+
 ## 数据
 
 `src/http/request.js` 是原版 demo 的本地 mock，用于模拟分页接口，未做改动。真实项目里在 `@query` 回调中换成自己的请求即可。

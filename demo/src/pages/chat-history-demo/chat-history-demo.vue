@@ -7,7 +7,9 @@
 		<!-- safe-area-inset-bottom：开启底部安全区域适配 -->
 		<!-- bottom-bg-color：设置slot="bottom"容器的背景色，这里设置为和chat-input-bar的背景色一致 -->
 		<ZPagingWevu ref="paging" v-model="dataList" :use-chat-record-mode="true" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
-		@query="queryList" @keyboardHeightChange="keyboardHeightChange" @hidedKeyboard="hidedKeyboard">
+		@query="queryList" @keyboardHeightChange="keyboardHeightChange" @hidedKeyboard="hidedKeyboard"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 顶部提示文字 -->
 			
 			<template #top>
@@ -37,8 +39,8 @@
 <script setup>
 import ChatInputBar from '@/components/chat-input-bar/chat-input-bar.vue'
 import ChatItem from '@/components/chat-item/chat-item.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '聊天记录模式演示',

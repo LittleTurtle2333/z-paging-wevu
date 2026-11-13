@@ -66,8 +66,8 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test:docs": "pnpm docs:build && node scripts/verify-docs.mjs",
     "build": "pnpm typecheck && pnpm docs:build",
-    "demo:dev": "wv dev demo",
-    "demo:build": "wv build demo && node demo/scripts/verify-demo.mjs"
+    "demo:dev": "node demo/scripts/sync-source.mjs && wv dev demo",
+    "demo:build": "node demo/scripts/sync-source.mjs && wv build demo && node demo/scripts/verify-demo.mjs"
   },
   "peerDependencies": {
     "wevu": ">=7.5.0"

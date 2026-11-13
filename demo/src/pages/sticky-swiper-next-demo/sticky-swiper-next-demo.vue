@@ -1,7 +1,9 @@
 <!-- 滑动切换选项卡+吸顶演示(上一个tab数据不保留，滚动流畅) -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="pagePaging" :refresher-only="true" @onRefresh="onRefresh" @scrolltolower="scrolltolower">
+		<ZPagingWevu ref="pagePaging" :refresher-only="true" @onRefresh="onRefresh" @scrolltolower="scrolltolower"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 自定义下拉刷新view -->
 			<template #refresher="{refresherStatus}">
 				<CustomRefresher :status="refresherStatus" />
@@ -33,8 +35,8 @@
 import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
 import StickySwiperNextItem from '@/components/sticky-swiper-next-item/sticky-swiper-next-item.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '滑动切换选项卡+吸顶演示2',

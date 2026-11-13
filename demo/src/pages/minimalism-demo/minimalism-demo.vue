@@ -1,9 +1,13 @@
 <!-- 极简写法演示(vue) -->
 <template>
 	<view class="content">
-		<!-- 这里的autowire-query-name、autowire-list-name都可以写在全局配置中，实际上项目中只要写<ZPagingWevu ref="paging">即可 -->
+		<!-- 这里的autowire-query-name、autowire-list-name都可以写在全局配置中，实际上项目中只要写<ZPagingWevu ref="paging"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">即可 -->
 		<!-- autowire-list-name用于设置自动赋值list的名字，autowire-query-name用于设置自动调用query方法的方法名 -->
-		<ZPagingWevu ref="paging" autowire-list-name="zList" autowire-query-name="zQuery">
+		<ZPagingWevu ref="paging" autowire-list-name="zList" autowire-query-name="zQuery"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="notice">
@@ -24,8 +28,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '极简写法演示①',

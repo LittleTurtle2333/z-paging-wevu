@@ -4,7 +4,9 @@
 	<view class="content">
 		<!-- 通过:fetch直接传入列表请求函数即可，默认会调用对应请求参数并且给它传{pageNo, pageSize}两个参数 -->
 		<!-- :fetch的请求函数附加参数可通过:fetch-params传入 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :fetch="queryList" :fetch-params="fetchParams">
+		<ZPagingWevu ref="paging" v-model="dataList" :fetch="queryList" :fetch-params="fetchParams"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="notice">
@@ -25,8 +27,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '极简写法演示②',

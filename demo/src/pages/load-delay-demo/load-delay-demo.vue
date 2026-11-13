@@ -1,7 +1,9 @@
 <!-- 延迟加载列表演示(vue) -->
 <template>
 	<!-- 通过:auto="false"禁止默认的自动加载列表行为 -->
-    <ZPagingWevu ref="paging" v-model="dataList" :auto="false" @query="queryList">
+    <ZPagingWevu ref="paging" v-model="dataList" :auto="false" @query="queryList"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 		<!-- 注意！此处的z-tabs为独立的组件，可替换为第三方的tabs，若需要使用z-tabs，请在插件市场搜索z-tabs并引入，否则会报插件找不到的错误 -->
 		<template #top>
@@ -19,8 +21,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '延迟加载列表演示',

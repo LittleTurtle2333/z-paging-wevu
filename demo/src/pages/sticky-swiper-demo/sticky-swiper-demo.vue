@@ -6,7 +6,9 @@
 <!-- 如果在App中，推荐使用nvue写法，滚动和过渡更流畅，参照sticky-swiper-demo-n -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="pagePaging" @scroll="scroll" :refresher-only="true" :scrollable="scrollable" @query="queryList">
+		<ZPagingWevu ref="pagePaging" @scroll="scroll" :refresher-only="true" :scrollable="scrollable" @query="queryList"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 自定义下拉刷新view -->
 			<template #refresher="{refresherStatus}">
 				<CustomRefresher :status="refresherStatus" />
@@ -37,8 +39,8 @@
 import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
 import StickySwiperItem from '@/components/sticky-swiper-item/sticky-swiper-item.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '滑动切换选项卡+吸顶演示1',

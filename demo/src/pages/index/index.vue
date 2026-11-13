@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'wevu'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 import { demoList } from './list'
 
 definePageJson({
@@ -29,9 +29,10 @@ function openDemo(file: string) {
       v-model="items"
       :controller="paging"
       :refresher-only="true"
-      :refresher-complete-delay="600"
       @on-refresh="handleRefresh"
-    >
+    
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
       <view class="demo-list">
         <view
           v-for="item in items"

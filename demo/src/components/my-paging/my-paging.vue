@@ -48,8 +48,8 @@
 <script setup>
 import CustomNomore from '@/components/custom-nomore/custom-nomore.vue'
 import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: 'my-paging',

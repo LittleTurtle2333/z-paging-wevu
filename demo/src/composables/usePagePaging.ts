@@ -8,7 +8,7 @@
  * ```
  * 页面 json 需要 `enablePullDownRefresh: true` 才能下拉刷新。
  */
-import type { ZPagingWevuApi, ZPagingWevuController } from 'zp/components/z-paging-wevu/types'
+import type { ZPagingWevuApi, ZPagingWevuController } from '@/components/z-paging-wevu/types'
 import { onPageScroll, onPullDownRefresh, onReachBottom } from 'wevu'
 
 type PagingTarget = ZPagingWevuController | { value: ZPagingWevuApi | null } | null | undefined

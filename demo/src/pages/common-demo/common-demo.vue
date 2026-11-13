@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'wevu'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import request from '@/http/request'
 
@@ -36,7 +36,9 @@ function queryList([pageNo, pageSize]: [number, number]) {
     v-model="dataList"
     :controller="paging"
     @query="queryList"
-  >
+  
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
     <!-- 固定在顶部不滚动的区域放在 #top 插槽 -->
     <template #top>
       <DemoTabs :list="tabList" @change="tabsChange" />

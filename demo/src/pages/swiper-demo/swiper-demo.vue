@@ -20,10 +20,10 @@
 
 <script setup>
 import SwiperListItem from '@/components/swiper-list-item/swiper-list-item.vue'
-import ZPagingSwiper from 'zp/components/z-paging-swiper/index.vue'
+import ZPagingSwiper from '@/components/z-paging-swiper/index.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '滑动切换选项卡演示(标准写法)',

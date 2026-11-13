@@ -21,9 +21,9 @@
 
 <script setup lang="ts">
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import type { ZPagingWevuController } from 'zp/components/z-paging-wevu/types'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import type { ZPagingWevuController } from '@/components/z-paging-wevu/types'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 	import { ref } from 'wevu';
 	
 	import request from '@/http/request'

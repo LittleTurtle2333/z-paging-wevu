@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { usePagePaging } from '@/composables/usePagePaging'
 import PageDefaultList from '@/components/page-default-list/page-default-list.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: '使用页面滚动且在子组件内使用z-paging演示',

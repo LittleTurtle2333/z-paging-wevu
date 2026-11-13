@@ -1,7 +1,9 @@
 <!-- i18n国际化演示(vue) -->
 <template>
 	<view class="content">
-		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList">
+		<ZPagingWevu ref="paging" v-model="dataList" @query="queryList"
+		refresher-default-style="none"
+		:refresher-complete-delay="600">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="language-view" @click="languageSwitch">当前语言：[{{applicationLocale}}] 点击切换</view>
@@ -20,8 +22,8 @@
 
 <script setup>
 import DemoTabs from '@/components/demo-tabs/index.vue'
-import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
-import { createPagingController } from 'zp/components/z-paging-wevu/types'
+import ZPagingWevu from '@/components/z-paging-wevu/index.vue'
+import { createPagingController } from '@/components/z-paging-wevu/types'
 
 definePageJson({
   navigationBarTitleText: 'i18n国际化演示',
