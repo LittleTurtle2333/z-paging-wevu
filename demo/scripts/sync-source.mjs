@@ -33,4 +33,19 @@ for (const name of COMPONENTS) {
   fs.cpSync(from, to, { recursive: true })
 }
 
-console.log(`已同步 ${COMPONENTS.length} 个 z-paging 组件目录到 demo/src/components`)
+/**
+ * 组件 SFC 的 <style> 在当前 weapp-vite 版本下不会被输出成 index.wxss，
+ * 导致组件内部样式（含刷新箭头尺寸）整体失效。
+ * 这里把样式抽成全局 css，由 app.css 引入；组件是 apply-shared，可正常命中。
+ */
+const STYLE_DIR = path.resolve(import.meta.dirname, '../src/styles')
+const mainSfc = fs.readFileSync(path.join(SRC, 'z-paging-wevu/index.vue'), 'utf8')
+const styleBlock = mainSfc.match(/<style[^>]*>([\s\S]*?)<\/style>/)
+if (!styleBlock) {
+  console.error('未能从 z-paging-wevu/index.vue 中提取样式块')
+  process.exit(1)
+}
+fs.mkdirSync(STYLE_DIR, { recursive: true })
+fs.writeFileSync(path.join(STYLE_DIR, 'z-paging-wevu.css'), `${styleBlock[1].trim()}\n`)
+
+console.log(`已同步 ${COMPONENTS.length} 个组件目录，并导出组件样式到 demo/src/styles`)
