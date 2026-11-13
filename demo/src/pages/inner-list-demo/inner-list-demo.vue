@@ -62,7 +62,7 @@ definePageJson({
 		}).catch(res => {
 			// 如果请求失败写paging.complete(false);
 			// 注意，每次都需要在catch中写这句话很麻烦，z-paging提供了方案可以全局统一处理
-			// 在底层的网络请求抛出异常时，写(() => {})('z-paging-error-emit');即可
+			// 在底层的网络请求抛出异常时，写统一错误回调;即可
 			paging.complete(false);
 		})
     }

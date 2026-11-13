@@ -58,7 +58,7 @@ function _queryList(data, listCount, showNews = false ,random = false, showChat 
 		console.info(`请求参数：【pageNo:${pageNo},pageSize:${pageSize}】`)
 		console.log('%c----------请求结束--------\n', 'color:green;');
 	}
-	uni.showLoading({
+	wx.showLoading({
 		title: '加载中...'
 	})
 	if (pageNo == 0) {
@@ -98,7 +98,7 @@ function _queryList(data, listCount, showNews = false ,random = false, showChat 
 function _callQueryResult(arg) {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			uni.hideLoading();
+			wx.hideLoading();
 			if (showLog) {
 				console.log('%c\n----------响应开始--------', 'color:#0113fa;');
 				// #ifdef H5
