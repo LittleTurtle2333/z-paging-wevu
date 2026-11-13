@@ -21,6 +21,7 @@
 | `minDelay` | `number \| string` | `0` | 查询最短耗时，ms |
 | `autoCleanListWhenReload` | `boolean` | `false` | reload 开始时清空列表 |
 | `autoCleanListWhenReloadError` | `boolean` | `true` | reload 失败时清空列表 |
+| `autoScrollToTopWhenReload` | `boolean` | `true` | reload 时自动回到顶部（首次挂载不触发） |
 
 ### `fetch` 参数
 

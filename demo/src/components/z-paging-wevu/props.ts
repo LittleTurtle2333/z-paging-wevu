@@ -83,6 +83,8 @@ export interface ZPagingWevuProps {
   autoCleanListWhenReload?: boolean
   /** 重新加载失败时是否自动清空列表。@defaultValue true */
   autoCleanListWhenReloadError?: boolean
+  /** 重新加载时是否自动回到顶部（首次挂载时不触发）。@defaultValue true */
+  autoScrollToTopWhenReload?: boolean
 
   /** 是否仅保留下拉刷新，关闭自动请求、加载更多和空态。@defaultValue false */
   refresherOnly?: boolean
@@ -322,6 +324,7 @@ export const zPagingWevuDefaults = {
   minDelay: 0,
   autoCleanListWhenReload: false,
   autoCleanListWhenReloadError: true,
+  autoScrollToTopWhenReload: true,
   refresherOnly: false,
   refresherEnabled: true,
   refresherThreshold: 40,

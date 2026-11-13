@@ -50,6 +50,7 @@ const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   delay: 0,
   minDelay: 0,
   autoCleanListWhenReloadError: true,
+  autoScrollToTopWhenReload: true,
   refresherOnly: false,
   refresherEnabled: true,
   refresherThreshold: 40,
@@ -364,11 +365,19 @@ const refresherImage = computed(() => {
   }
   return map[refresherStatus.value]
 })
-const chatBottomStyle = computed(() => {
-  if (!props.useChatRecordMode || !props.autoAdjustPositionWhenChat) {
-    return ''
+/**
+ * 底部区域样式：computed 放在 `:style` 数组里不会被模板解包，
+ * 这里直接拼成字符串，避免 `bottomBgColor` / 聊天键盘高度失效。
+ */
+const bottomStyle = computed(() => {
+  const parts: string[] = []
+  if (props.bottomBgColor) {
+    parts.push(`background-color:${props.bottomBgColor};`)
   }
-  return `padding-bottom:${keyboardHeight.value + vpPx(props.chatAdjustPositionOffset, 0)}px;`
+  if (props.useChatRecordMode && props.autoAdjustPositionWhenChat) {
+    parts.push(`padding-bottom:${keyboardHeight.value + vpPx(props.chatAdjustPositionOffset, 0)}px;`)
+  }
+  return parts.join('')
 })
 
 const virtual = useVirtualList({
@@ -589,6 +598,10 @@ function reload(animate = props.showRefresherWhenReload) {
   }
   resetState()
   emit('reload')
+  // 与原版一致：reload 时回到顶部，切换 tab 或搜索后列表从第一页顶部开始
+  if (props.autoScrollToTopWhenReload) {
+    scrollToTop(false)
+  }
   return startQuery(pageSize.value, false, 'reload')
 }
 
@@ -1726,7 +1739,7 @@ onUnmounted(() => {
 
     <view
       class="z-paging-wevu__bottom"
-      :style="[{ backgroundColor: bottomBgColor }, chatBottomStyle]"
+      :style="`${bottomStyle}`"
     >
       <slot name="bottom" />
     </view>
