@@ -41,7 +41,9 @@ import ZPagingCell from 'z-paging-wevu/cell'
 
 ## ZPagingSwiperItem
 
-在当前 `currentIndex === tabIndex` 且尚未加载时触发首次 `reload()`，实现当前页懒加载。组件内部维护轻量分页状态，不嵌套 `ZPagingWevu`，避免多层 scoped slot 中的控制器序列化问题。
+在 `currentIndex === tabIndex` 且尚未加载时触发首次 `reload()`，实现当前页懒加载。组件内部维护轻量分页状态，不嵌套 `ZPagingWevu`，避免多层 scoped slot 中的控制器序列化问题。
+
+容器为 `scroll-view`（`scroll-y`，撑满 swiper-item），每个 tab 独立滚动；滑到底部时通过 `scrolltolower` 自动请求下一页，`noMore` 后不再触发。
 
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |

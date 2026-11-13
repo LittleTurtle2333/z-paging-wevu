@@ -115,6 +115,9 @@ paging.scrollIntoViewById('zp-id-99', 0, true)
 
 多列时索引按行计算高度；动态高度应以每行首个 cell 的实际高度为准。
 
-## 内置列表边界
+## 两种渲染方式
 
-组件保留 `#cell`、`#header`、`#footer` 等内置列表插槽作为兼容能力，但微信端已验证路径是 `force-close-inner-list` + 页面 `v-for`。新增微信页面不要把逐 cell scoped-slot 的内置写法作为首选。
+- **内置列表（`use-inner-list` 或默认 `#cell` 插槽）**：由组件负责 `v-for`，页面只写 cell 内容，配合 `#header` / `#footer`。
+- **非内置列表（`force-close-inner-list`）**：页面拿到 `@virtual-list-change` 的窗口数组后自己 `v-for`，cell 的 `id` 必须写成 `zp-id-${item.zp_index}`、`key` 用 `item.zp_index`。
+
+动态高度（`cell-height-mode="dynamic"`）下，组件会自动批量测量当前渲染 cell 的真实高度并缓存（每个 index 只测一次），避免占位高度错乱导致的抖动；两个 demo 均已验证。

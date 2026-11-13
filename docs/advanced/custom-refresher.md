@@ -45,15 +45,19 @@
   @query="queryList"
 >
   <template #refresher="{ refresherStatus }">
-    <view>当前状态：{{ refresherStatus }}</view>
-  </template>
-  <template #refresherComplete>
-    <view>刷新完成</view>
+    <view v-if="refresherStatus === 'complete'">刷新完成</view>
+    <view v-else>当前状态：{{ refresherStatus }}</view>
   </template>
 </ZPagingWevu>
 ```
 
 该模式在逻辑层按 `refresherPullRate` / `refresherOutRate` 逐帧计算高度，高频拖动时会落后于手指，且高度随拖拽持续增长。仅在需要完全自绘（二楼、图片、非矩形刷新区）时使用。
+
+几点实现约定：
+
+- 刷新区高度在挂载后会实测自定义视图的自然高度：拖动阶段上限取「视图高度 / 二楼阈值 + 阈值」二者较大值，刷新态直接撑到视图高度，避免自定义内容被裁成一条。
+- 拖动阶段不加高度过渡（保证跟手）；`loading` / `complete` 阶段才有动画。
+- 刷新完成后先保持 `complete` 展示 `refresher-complete-delay`，再用 `refresher-complete-duration` 缓慢收起。
 
 状态包括：
 

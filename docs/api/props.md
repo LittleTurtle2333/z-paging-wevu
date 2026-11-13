@@ -2,6 +2,10 @@
 
 模板中使用 kebab-case，例如 `defaultPageSize` 写作 `default-page-size`。下列默认值来自当前组件实现。
 
+::: tip 文案类 Props
+标注「内置文案」的 Prop 默认不传，由组件内置的多语言字典提供（简体中文 / 繁体中文 / 英文），并可通过 `paging.setLocale()` 切换；显式传入字符串即固定文案，传入 `{ 'zh-Hans': '...', en: '...' }` 这类对象则按语言取值。详见 [国际化文本](../advanced/i18n.md)。
+:::
+
 ## 数据与分页
 
 | Prop | 类型 | 默认值 | 说明 |
@@ -78,10 +82,10 @@ type ZPagingWevuFetch = (params: {
 | `refresherThemeStyle` | `string` | `'black'` | 刷新主题 |
 | `showRefresherUpdateTime` | `boolean` | `false` | 展示最后更新时间 |
 | `refresherUpdateTimeKey` | `string` | `'default'` | 更新时间缓存 key |
-| `refresherDefaultText` | `ZPagingWevuText` | `'继续下拉刷新'` | 默认文本 |
-| `refresherPullingText` | `ZPagingWevuText` | `'松开立即刷新'` | 松开刷新文本 |
-| `refresherRefreshingText` | `ZPagingWevuText` | `'正在刷新...'` | 刷新中文本 |
-| `refresherCompleteText` | `ZPagingWevuText` | `'刷新成功'` | 完成文本 |
+| `refresherDefaultText` | `ZPagingWevuText` | —（内置文案） | 默认文本 |
+| `refresherPullingText` | `ZPagingWevuText` | —（内置文案） | 松开刷新文本 |
+| `refresherRefreshingText` | `ZPagingWevuText` | —（内置文案） | 刷新中文本 |
+| `refresherCompleteText` | `ZPagingWevuText` | —（内置文案） | 完成文本 |
 | `refresherDefaultImg` | `string` | — | 默认图片 |
 | `refresherPullingImg` | `string` | — | 拉动图片 |
 | `refresherRefreshingImg` | `string` | — | 刷新中图片 |
@@ -115,10 +119,10 @@ type ZPagingWevuFetch = (params: {
 | `lowerThreshold` | `number \| string` | `50` | 距底部触发距离 |
 | `toBottomLoadingMoreEnabled` | `boolean` | `true` | 触底自动加载 |
 | `loadingMoreThemeStyle` | `string` | `'black'` | 加载更多主题 |
-| `loadingMoreDefaultText` | `ZPagingWevuText` | `'点击加载更多'` | 默认文本 |
-| `loadingMoreLoadingText` | `ZPagingWevuText` | `'正在加载...'` | 加载中文本 |
-| `loadingMoreNoMoreText` | `ZPagingWevuText` | `'没有更多了'` | 无更多文本 |
-| `loadingMoreFailText` | `ZPagingWevuText` | `'加载失败，点击重新加载'` | 失败文本 |
+| `loadingMoreDefaultText` | `ZPagingWevuText` | —（内置文案） | 默认文本 |
+| `loadingMoreLoadingText` | `ZPagingWevuText` | —（内置文案） | 加载中文本 |
+| `loadingMoreNoMoreText` | `ZPagingWevuText` | —（内置文案） | 无更多文本 |
+| `loadingMoreFailText` | `ZPagingWevuText` | —（内置文案） | 失败文本 |
 | `showLoadingMoreNoMoreView` | `boolean` | `true` | 显示无更多视图 |
 | `hideNoMoreInside` | `boolean` | `false` | 隐藏列表内无更多 |
 | `hideNoMoreByLimit` | `number` | `0` | 数据量小于限制时隐藏无更多 |
@@ -141,11 +145,11 @@ type ZPagingWevuFetch = (params: {
 | `hideEmptyView` | `boolean` | `false` | 隐藏空态 |
 | `emptyViewFixed` | `boolean` | `false` | 固定空态 |
 | `emptyViewCenter` | `boolean` | `true` | 空态居中 |
-| `emptyViewText` | `ZPagingWevuText` | `'没有数据哦~'` | 空数据文本 |
+| `emptyViewText` | `ZPagingWevuText` | —（内置文案） | 空数据文本 |
 | `emptyViewImg` | `string` | — | 空数据图片 |
 | `emptyViewErrorImg` | `string` | — | 失败图片 |
-| `emptyViewReloadText` | `ZPagingWevuText` | `'重新加载'` | 重载按钮文本 |
-| `emptyViewErrorText` | `ZPagingWevuText` | `'很抱歉，加载失败'` | 失败文本 |
+| `emptyViewReloadText` | `ZPagingWevuText` | —（内置文案） | 重载按钮文本 |
+| `emptyViewErrorText` | `ZPagingWevuText` | —（内置文案） | 失败文本 |
 | `showEmptyViewReload` | `boolean` | `false` | 空态显示重载 |
 | `showEmptyViewReloadWhenError` | `boolean` | `true` | 失败时显示重载 |
 | `emptyViewSuperStyle` | `ZPagingWevuStyle` | — | 空态外层样式 |

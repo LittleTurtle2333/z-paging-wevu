@@ -92,6 +92,22 @@ interface ZPagingWevuResult<T = unknown> {
 | `updateFixedLayout` | `() => void` | 更新固定布局 |
 | `addKeyboardHeightChangeListener` | `() => void` | 注册键盘高度监听 |
 
+## 国际化
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `setLocale` | `(locale: 'auto' \| 'zh-Hans' \| 'zh-Hant' \| 'en') => void` | 切换组件内置文案语言；`auto` 表示跟随系统语言 |
+| `getLocale` | `() => 'zh-Hans' \| 'zh-Hant' \| 'en'` | 获取组件当前实际使用的内置文案语言 |
+
+```ts
+// 跟随系统（默认）
+paging.setLocale('auto')
+// 指定英文
+paging.setLocale('en')
+```
+
+切换后，下拉刷新、加载更多、空数据等**内置文案**会立即重新渲染；页面自身文案不受影响，需要自行处理。
+
 ## 兼容入口
 
 | 方法 | 签名 | 说明 |

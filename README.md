@@ -116,8 +116,8 @@ DOCS_BASE=/ pnpm test:docs
 ## 与 z-paging 的主要差异
 
 - 微信中使用 `paging-data-key`，避免原生 `data-*` 属性冲突。
-- 微信虚拟列表推荐 `force-close-inner-list` + `@virtual-list-change` + 页面 `v-for`。
-- 每个虚拟列表 cell 的 DOM id 必须为 `zp-id-${item.zp_index}`。
+- 虚拟列表支持两种写法：内置列表（`use-virtual-list` + `#cell` 插槽）和非内置列表（`force-close-inner-list` + `@virtual-list-change` + 页面 `v-for`）；非内置写法中 cell 的 DOM id 必须为 `zp-id-${item.zp_index}`。
+- 内置文案默认走多语言字典（`zh-Hans` / `zh-Hant` / `en`），可用 `paging.setLocale()` 运行时切换。
 - 聊天消息项需要设置 `transform: scaleY(-1)` 恢复内容方向。
 - `withDefaults` 默认值保留在 SFC 内，避免 wevu 不支持的 `mergeDefaults` 辅助函数。
 

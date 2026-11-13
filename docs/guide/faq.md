@@ -27,15 +27,21 @@ function queryList([pageNo, pageSize, from]: [number, number, string]) {}
 
 ## 虚拟列表没有内容
 
-微信端同时使用：
+两种写法任选其一：
+
+**内置列表**（组件负责 `v-for`）：
 
 - `use-virtual-list`
-- `force-close-inner-list`
-- `@virtual-list-change`
-- 页面默认插槽中的 `v-for`
-- cell id：`zp-id-${item.zp_index}`
+- 默认插槽或 `#cell` 插槽提供 cell 内容
+- 可选 `#header` / `#footer`
 
-只设置 `use-virtual-list` 不会自动让页面默认插槽切换到虚拟数据。
+**非内置列表**（页面负责 `v-for`）：
+
+- `use-virtual-list` + `force-close-inner-list`
+- 监听 `@virtual-list-change`，用返回的窗口数组在默认插槽里 `v-for`
+- cell 的 DOM id 必须是 `zp-id-${item.zp_index}`，`:key` 用 `item.zp_index`
+
+两种写法都必须通过 `@query` / `paging.complete()` 提交数据，只设置 `use-virtual-list` 不会有任何内容。
 
 ## `updateCell` / `deleteCell` 为什么没改业务数据
 

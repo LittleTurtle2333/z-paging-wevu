@@ -92,5 +92,9 @@ paging.addKeyboardHeightChangeListener()
 - `chat-adjust-position-offset`：键盘位置调整偏移，默认 `0px`。
 - `show-chat-loading-when-reload`：reload 时显示聊天加载状态。
 - `chat-loading-more-default-as-loading`：默认状态也展示为加载中。
-- `#chatLoading`：自定义历史消息加载内容，作用域参数为 `loadingMoreStatus`。
-- `#chatNoMore`：自定义无更多历史消息内容。
+- `#chatLoading`：自定义历史消息加载内容，作用域参数为 `loadingMoreStatus`；不提供时组件渲染居中的加载动画。
+- `#chatNoMore`：自定义无更多历史消息内容；不提供时不显示任何内置文案。
+
+::: tip 聊天模式下不会出现的内置元素
+聊天模式隐藏通用「加载更多」条（含「没有更多了」横线）与自绘下拉刷新提示，也不会启用原生下拉刷新——倒置后这些位置会跑到视觉顶部/底部造成干扰。需要提示时请使用上面的 `#chatLoading` / `#chatNoMore` 插槽。
+:::

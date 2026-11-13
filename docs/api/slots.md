@@ -30,10 +30,21 @@
 
 | 插槽 | 作用域参数 | 说明 |
 | --- | --- | --- |
-| `refresher` | `{ refresherStatus }` | 自定义下拉刷新主体 |
-| `refresherComplete` | 无 | 刷新完成状态 |
+| `refresher` | `{ refresherStatus }` | 自定义下拉刷新主体；`loading` / `complete` 等状态同样走这里，用 `refresherStatus` 区分 |
 | `refresherF2` | 无 | 达到二楼阈值时的提示 |
 | `f2` | 无 | 二楼完整内容 |
+
+::: tip
+不再提供独立的 `refresherComplete` 插槽。刷新完成态也由 `refresher` 插槽渲染，通过作用域参数区分：
+
+```vue
+<template #refresher="{ refresherStatus }">
+  <view v-if="refresherStatus === 'loading'">正在刷新...</view>
+  <view v-else-if="refresherStatus === 'complete'">刷新完成</view>
+  <view v-else>继续下拉刷新</view>
+</template>
+```
+:::
 
 ## 加载更多
 
