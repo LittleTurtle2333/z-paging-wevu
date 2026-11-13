@@ -4,7 +4,7 @@
 	<view class="content">
 		<!-- 通过:fetch直接传入列表请求函数即可，默认会调用对应请求参数并且给它传{pageNo, pageSize}两个参数 -->
 		<!-- :fetch的请求函数附加参数可通过:fetch-params传入 -->
-		<ZPagingWevu ref="paging" v-model="dataList" :fetch="queryList" :fetch-params="{ type: tabIndex + 1 }">
+		<ZPagingWevu ref="paging" v-model="dataList" :fetch="queryList" :fetch-params="fetchParams">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="notice">
@@ -31,7 +31,7 @@ import { createPagingController } from 'zp/components/z-paging-wevu/types'
 definePageJson({
   navigationBarTitleText: '极简写法演示②',
 })
-	import { ref } from 'wevu';
+	import { computed, ref } from 'wevu';
 	import { queryList } from '@/http/request';
 	
 	
@@ -40,6 +40,8 @@ definePageJson({
     const dataList = ref([]);
 	const tabIndex = ref(0);
 	const tabList = ref(['测试1','测试2','测试3','测试4']);
+	// WXML 的 mustache 不支持对象字面量，fetch 参数需要先在 script 中定义
+	const fetchParams = computed(() => ({ type: tabIndex.value + 1 }));
 	
 	
 	const tabsChange = (index) => {

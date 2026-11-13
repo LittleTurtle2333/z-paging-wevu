@@ -67,7 +67,7 @@
     "test:docs": "pnpm docs:build && node scripts/verify-docs.mjs",
     "build": "pnpm typecheck && pnpm docs:build",
     "demo:dev": "wv dev demo",
-    "demo:build": "wv build demo"
+    "demo:build": "wv build demo && node demo/scripts/verify-demo.mjs"
   },
   "peerDependencies": {
     "wevu": ">=7.5.0"
