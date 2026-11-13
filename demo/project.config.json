@@ -1,0 +1,37 @@
+{
+  "description": "z-paging-wevu demo（移植自 uni-z-paging/z-paging-vue3-demo）",
+  "miniprogramRoot": "dist/",
+  "srcMiniprogramRoot": "dist/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "libVersion": "3.13.2",
+  "simulatorType": "wechat",
+  "simulatorPluginLibVersion": {},
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": false,
+    "minified": true,
+    "minifyWXML": true,
+    "minifyWXSS": true,
+    "compileHotReLoad": false,
+    "skylineRenderEnable": false,
+    "ignoreUploadUnusedFiles": true,
+    "useCompilerPlugins": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  }
+}
