@@ -87,9 +87,9 @@ definePageJson({
 		border-radius: 8rpx;
 		padding: 10rpx 15rpx;
 		margin-top: 10rpx;
-		/* #ifndef APP-NVUE */
+		
 		max-width: 500rpx;
-		/* #endif */
+		
 	}
 	.chat-text-container-me {
 		background-color: #007AFF;
@@ -100,12 +100,10 @@ definePageJson({
 	}
 	.chat-text {
 		font-size: 28rpx;
-		/* #ifndef APP-NVUE */
+		
 		word-break: break-all;
-		/* #endif */
-		/* #ifdef APP-NVUE */
-		max-width: 500rpx;
-		/* #endif */
+		
+		
 	}
 	.chat-text-me {
 		color: white;

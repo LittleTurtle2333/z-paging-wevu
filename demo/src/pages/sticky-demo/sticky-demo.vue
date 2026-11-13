@@ -15,7 +15,7 @@
 			</view>
 			<!-- 自定义下拉刷新view -->
 			<template #refresher>
-				<custom-refresher :status="refresherStatus" />
+				<CustomRefresher :status="refresherStatus" />
 			</template>
 			<view class="item" v-for="(item,index) in dataList" :key="index">
 				<view class="item-title">{{item.title}}</view>
@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'

@@ -16,7 +16,7 @@
 		</template>
 		<!-- 自定义需要插入二楼的view，建议将插入二楼的view设置高度100%以铺满容器高度 -->
 		<template #f2>
-			<custom-f2 @closeF2="onCloseF2"/>
+			<CustomF2 @closeF2="onCloseF2"/>
 		</template>
 		<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 		<view class="item" v-for="(item,index) in dataList" :key="index">
@@ -28,6 +28,7 @@
 </template>
 
 <script setup>
+import CustomF2 from '@/components/custom-f2/custom-f2.vue'
 import DemoNavbar from '@/components/demo-navbar/index.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'

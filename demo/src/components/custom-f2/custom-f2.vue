@@ -1,12 +1,10 @@
 <template>
 	<view class="custom-f2">
 		<view class="custom-f2-main">
-			<!-- #ifndef APP-NVUE -->
+			
 			<DemoNavbar></DemoNavbar>
-			<!-- #endif -->
-			<!-- #ifdef APP-NVUE -->
-			<n-navbar title="我的小程序" light :show-back="false"></n-navbar>
-			<!-- #endif -->
+			
+			
 			<scroll-view scroll-y class="custom-f2-list-container">
 				<view class="custom-f2-list">
 					<view class="custom-f2-item" v-for="index of 16" :key="index">
@@ -23,8 +21,11 @@
 </template>
 
 <script>
+	import DemoNavbar from '@/components/demo-navbar/index.vue'
+
 	export default {
 		name:"custom-f2",
+		components: { DemoNavbar },
 		data() {
 			return {
 				
@@ -45,9 +46,7 @@
 		display: flex;
 		flex-direction: column;
 		
-		/* #ifdef APP-NVUE */
-		flex: 1;
-		/* #endif */
+		
 	}
 	.custom-f2-main {
 		flex: 1;
@@ -60,9 +59,7 @@
 		border-top-left-radius: 30rpx;
 		border-top-right-radius: 30rpx;
 		
-		/* #ifdef APP-NVUE */
-		align-items: center;
-		/* #endif */
+		
 	}
 	.custom-f2-bottom-text {
 		color: white;
@@ -72,27 +69,22 @@
 	.custom-f2-list-container {
 		height: 100%;
 		
-		/* #ifdef APP-NVUE */
-		flex: 1;
-		/* #endif */
+		
 	}
 	.custom-f2-list {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
 		padding: 80rpx 86rpx;
-		/* #ifndef APP-NVUE */
+		
 		gap: 70rpx;
-		/* #endif */
+		
 	}
 	.custom-f2-item {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		/* #ifdef APP-NVUE */
-		margin-left: 40rpx;
-		margin-top: 40rpx;
-		/* #endif */
+		
 	}
 	.custom-f2-item-img {
 		width: 90rpx;

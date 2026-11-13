@@ -2,7 +2,7 @@
 <template>
 	<view class="content">
 		<button size="mini" type="primary" @click="open">打开弹窗</button>
-		<pop-up ref="popup">
+		<PopUp ref="popup">
 			<!-- 在弹窗内使用z-paging时，z-paging的父view必须确定宽高（或者z-paging本身确定宽高） -->
 			<view style="height: 700rpx;width: 500rpx;">
 				<!-- 设置fixed=false代表z-paging非铺满全屏，此时z-paging高度未确定，其父view或z-paging本身必须确定宽高 -->
@@ -20,11 +20,12 @@
 					</view>
 				</ZPagingWevu>
 			</view>
-		</pop-up>
+		</PopUp>
 	</view>
 </template>
 
 <script setup>
+import PopUp from '@/components/pop-up/pop-up.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'

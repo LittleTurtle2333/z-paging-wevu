@@ -9,9 +9,9 @@
 
 <style scoped>
 	.nomore{
-		/* #ifndef APP-NVUE */
+		
 		display: flex;
-		/* #endif */
+		
 		flex-direction: column;
 		align-items: center;
 		padding: 20rpx 0px;

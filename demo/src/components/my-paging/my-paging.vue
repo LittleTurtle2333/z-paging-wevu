@@ -33,11 +33,11 @@
 		<!-- 这里通过slot统一自定义了下拉刷新view和没有更多数据view，页面那边就不用再写下面两行了 -->
 		<!-- 自定义下拉刷新view(如果use-custom-refresher为true且不设置下面的slot="refresher"，此时不用获取refresherStatus，会自动使用z-paging自带的下拉刷新view) -->
 		<template #refresher="{refresherStatus}">
-			<custom-refresher :status="refresherStatus" />
+			<CustomRefresher :status="refresherStatus" />
 		</template>
 		<!-- 自定义没有更多数据view -->
 		<template #loadingMoreNoMore>
-			<custom-nomore></custom-nomore>
+			<CustomNomore></CustomNomore>
 		</template>
 
 		<!-- 这里接收页面传进来的普通slot，如列表数据等 -->
@@ -46,6 +46,8 @@
 </template>
 
 <script setup>
+import CustomNomore from '@/components/custom-nomore/custom-nomore.vue'
+import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'
 

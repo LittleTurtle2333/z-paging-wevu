@@ -9,7 +9,7 @@
 			</template>
 			<!-- 自定义返回顶部view -->
 			<template #backToTop>
-				<custom-back-to-top ref="backToTop" :current="current" :total="total" />
+				<CustomBackToTop ref="backToTop" :current="current" :total="total" />
 			</template>
 			<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 			<view class="item" v-for="(item,index) in dataList" :key="index">
@@ -22,6 +22,7 @@
 </template>
 
 <script setup>
+import CustomBackToTop from '@/components/custom-back-to-top/custom-back-to-top.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'

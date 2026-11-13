@@ -4,12 +4,10 @@
 			<image style="width: 180px;height: 28px;" src="/static/title-logo.png"></image>
 			<view style="display: flex;">
 				<view class="version-tag version-text">v{{version}}</view>
-				<!-- #ifdef VUE2 -->
-				<view class="version-tag vue-version-text">vue2</view>
-				<!-- #endif -->
-				<!-- #ifdef VUE3 -->
+				
+				
 				<view class="version-tag vue-version-text">vue3+setup</view>
-				<!-- #endif -->
+				
 			</view>
 		</view>
 	</DemoNavbar>

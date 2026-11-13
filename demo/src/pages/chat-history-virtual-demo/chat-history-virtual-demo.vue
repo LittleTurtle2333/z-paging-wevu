@@ -21,19 +21,21 @@
 			<!-- 注意不要直接在chat-item组件标签上设置style，因为在微信小程序中是无效的，请包一层view -->
 			<template #cell="{item,index}">
 				<view style="transform: scaleY(-1)">
-					<chat-item :item="item"></chat-item>
+					<ChatItem :item="item"></ChatItem>
 				</view>
 			</template>
 			
 			<!-- 底部聊天输入框 -->
 			<template #bottom>
-				<chat-input-bar ref="inputBar" @send="doSend" />
+				<ChatInputBar ref="inputBar" @send="doSend" />
 			</template>
 		</ZPagingWevu>
 	</view>
 </template>
 
 <script setup>
+import ChatInputBar from '@/components/chat-input-bar/chat-input-bar.vue'
+import ChatItem from '@/components/chat-item/chat-item.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'
 

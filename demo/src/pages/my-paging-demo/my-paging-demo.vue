@@ -2,7 +2,7 @@
 <template>
 	<view class="content">
 		<!-- 这里就很整洁了，只要设置ref，绑定query事件，绑定list就可以了 -->
-		<my-paging ref="paging" v-model="dataList" @query="queryList">
+		<MyPaging ref="paging" v-model="dataList" @query="queryList">
 			<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 			<template #top>
 				<view class="notice">
@@ -18,11 +18,12 @@
 				<view class="item-detail">{{item.detail}}</view>
 				<view class="item-line"></view>
 			</view>
-		</my-paging>
+		</MyPaging>
 	</view>
 </template>
 
 <script setup>
+import MyPaging from '@/components/my-paging/my-paging.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'

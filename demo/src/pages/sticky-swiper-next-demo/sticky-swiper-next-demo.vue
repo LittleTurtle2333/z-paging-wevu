@@ -4,7 +4,7 @@
 		<ZPagingWevu ref="pagePaging" :refresher-only="true" @onRefresh="onRefresh" @scrolltolower="scrolltolower">
 			<!-- 自定义下拉刷新view -->
 			<template #refresher="{refresherStatus}">
-				<custom-refresher :status="refresherStatus" />
+				<CustomRefresher :status="refresherStatus" />
 			</template>
 			<view class="banner-view" style="height: 250rpx;">
 				<view style="font-size: 40rpx;font-weight: 700;">这是一个banner</view>
@@ -20,8 +20,8 @@
 					<swiper-item class="swiper-item" v-for="(item, index) in tabList" :key="index">
 						<!-- 这里的sticky-swiper-next-item为demo中为演示用定义的组件，列表及分页代码在sticky-swiper-next-item组件内 -->
 						<!-- 请注意，sticky-swiper-next-item非z-paging内置组件，在自己的项目中必须自己创建，若未创建则会报组件不存在的错误 -->
-						<sticky-swiper-next-item :ref="el => swiperItems[index] = el" :tabIndex="index" :currentIndex="current" @heightChanged="heightChanged">
-						</sticky-swiper-next-item>
+						<StickySwiperNextItem :ref="el => swiperItems[index] = el" :tabIndex="index" :currentIndex="current" @heightChanged="heightChanged">
+						</StickySwiperNextItem>
 					</swiper-item>
 				</swiper>
 			</view>
@@ -30,6 +30,8 @@
 </template>
 
 <script setup>
+import CustomRefresher from '@/components/custom-refresher/custom-refresher.vue'
+import StickySwiperNextItem from '@/components/sticky-swiper-next-item/sticky-swiper-next-item.vue'
 import DemoTabs from '@/components/demo-tabs/index.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'

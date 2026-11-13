@@ -3,11 +3,12 @@
 <template>
 	<view>
 		<!-- 这里的extraData.id在virtual-list-compatibility-demo设置的是test1 -->
-		<virtual-list-test-cell v-if="extraData.id==='test1'" :item="item" :index="index" :extraData="extraData" />
+		<VirtualListTestCell v-if="extraData.id==='test1'" :item="item" :index="index" :extraData="extraData" />
 	</view>
 </template>
 
 <script setup>
+import VirtualListTestCell from '@/components/virtual-list-test-cell/virtual-list-test-cell.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'
 

@@ -9,11 +9,11 @@
 		<ZPagingWevu ref="paging" v-model="dataList" :use-chat-record-mode="true" :safe-area-inset-bottom="true" bottom-bg-color="#f8f8f8"
 		@query="queryList" @keyboardHeightChange="keyboardHeightChange" @hidedKeyboard="hidedKeyboard">
 			<!-- 顶部提示文字 -->
-			<!-- #ifdef H5 || MP-BAIDU || MP-TOUTIAO -->
+			
 			<template #top>
 				<view class="header">由于在H5、百度小程序、抖音小程序、飞书小程序中无法监听键盘高度变化，底部输入框切换时可能会有些bug，请运行在其他平台体验最佳效果</view>
 			</template>
-			<!-- #endif -->
+			
 			
 			<!-- for循环渲染聊天记录列表 -->
 			<view v-for="(item,index) in dataList" :key="index" style="position: relative;">
@@ -23,18 +23,20 @@
 				<!-- style="transform: scaleY(-1)"必须写，否则会导致列表倒置 -->
 				<!-- 注意不要直接在chat-item组件标签上设置style，因为在微信小程序中是无效的，请包一层view -->
 				<view style="transform: scaleY(-1);">
-					<chat-item :item="item"></chat-item>
+					<ChatItem :item="item"></ChatItem>
 				</view>
 			</view>
 			<!-- 底部聊天输入框 -->
 			<template #bottom>
-				<chat-input-bar ref="inputBar" @send="doSend" />
+				<ChatInputBar ref="inputBar" @send="doSend" />
 			</template>
 		</ZPagingWevu>
 	</view>
 </template>
 
 <script setup>
+import ChatInputBar from '@/components/chat-input-bar/chat-input-bar.vue'
+import ChatItem from '@/components/chat-item/chat-item.vue'
 import ZPagingWevu from 'zp/components/z-paging-wevu/index.vue'
 import { createPagingController } from 'zp/components/z-paging-wevu/types'
 

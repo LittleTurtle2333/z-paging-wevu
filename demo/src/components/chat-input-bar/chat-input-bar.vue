@@ -99,9 +99,9 @@
 	}
 	.chat-input-container {
 		flex: 1;
-		/* #ifndef APP-NVUE */
+		
 		display: flex;
-		/* #endif */
+		
 		padding: 15rpx;
 		background-color: white;
 		border-radius: 10rpx;
@@ -125,9 +125,9 @@
 		border-radius: 10rpx;
 		width: 110rpx;
 		height: 60rpx;
-		/* #ifndef APP-NVUE */
+		
 		display: flex;
-		/* #endif */
+		
 		justify-content: center;
 		align-items: center;
 	}
@@ -140,15 +140,15 @@
 		overflow: hidden;
 		transition-property: height;
 		transition-duration: 0.15s;
-		/* #ifndef APP-NVUE */
+		
 		will-change: height;
-		/* #endif */
+		
 	}
 	.emoji-panel {
 		font-size: 30rpx;
-		/* #ifndef APP-NVUE */
+		
 		display: flex;
-		/* #endif */
+		
 		flex-direction: row;
 		flex-wrap: wrap;
 		padding-right: 10rpx;

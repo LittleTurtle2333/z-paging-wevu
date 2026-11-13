@@ -38,9 +38,9 @@ definePageJson({
 
 <style scoped>
 	.refresher-container {
-		/* #ifndef APP-NVUE */
+		
 		display: flex;
-		/* #endif */
+		
 		height: 150rpx;
 		flex-direction: column;
 		align-items: center;

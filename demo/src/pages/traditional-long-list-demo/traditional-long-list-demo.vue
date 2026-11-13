@@ -23,7 +23,10 @@
 </template>
 
 <script>
+	import DemoTabs from '@/components/demo-tabs/index.vue'
+
 	export default {
+		components: { DemoTabs },
 		data() {
 			return {
 				pageNo: 1,
