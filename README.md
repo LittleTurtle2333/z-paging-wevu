@@ -104,13 +104,27 @@ pnpm check:package # publint 校验 exports / types 是否能被消费者解析
 
 脚本会临时把 appid 写入 `demo/project.config.json`，测试结束自动恢复，不会污染仓库。
 
-发布流程使用 Changesets：
+## 发布
+
+发布使用 Changesets，日常只需提交 changeset 文件，版本号与 npm 发布由 CI 完成。
 
 ```bash
-pnpm changeset   # 描述本次改动并选择版本类型
-pnpm version     # 汇总 CHANGELOG 与版本号
-pnpm release     # 门禁通过后发布到 npm
+pnpm changeset   # 描述本次改动并选择 patch / minor / major
 ```
+
+推送到 `main` 后，`.github/workflows/release.yml` 会：
+
+1. 有未消费的 changeset 时，自动创建 / 更新 `chore(release): version packages` PR（含版本号与 CHANGELOG）
+2. 该 PR 合并后，跑 `pnpm release`（lint → typecheck → test → docs build → `changeset publish`）并创建 GitHub Release
+
+本地手动发布仍然可用（需要 npm 账号，开启 2FA 时会提示输入 OTP）：
+
+```bash
+pnpm run version   # 消费 changeset，升版本 + 写 CHANGELOG
+pnpm release       # 门禁通过后发布到 npm
+```
+
+CI 发布需要仓库 secret `NPM_TOKEN`：npm 网站生成的 **Automation** 类型 token（Automation token 不会触发 OTP 交互）。发布目标 registry 由 `package.json` 的 `publishConfig.registry` 固定为官方源，本地镜像配置不影响发布。
 
 `pnpm build` 会依次执行 lint、类型检查、测试与文档构建。演示小程序单独运行：
 

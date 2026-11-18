@@ -29,7 +29,8 @@
 | 产物级 e2e | `pnpm test:e2e`（`weapp-vite/test` 构建 demo 产物 + `@mpcore/test` headless 运行时） |
 | 真实 DevTools e2e | `pnpm test:e2e:devtools`（`@weapp-vite/miniprogram-automator`，需本机 DevTools 已登录并开启服务端口） |
 | 包导出校验 | `pnpm check:package`（publint --strict） |
-| 变更记录 | `pnpm changeset` / `pnpm version` / `pnpm release` |
+| 变更记录 | `pnpm changeset`（只提交 changeset 文件，升版与发布由 CI 的 `release.yml` 完成） |
+| 本地发布 | `pnpm run version` + `pnpm release`（需 npm 凭据，2FA 账号需 OTP） |
 | 库质量门禁 | `pnpm build` = lint + typecheck + test + 文档构建（**不含**小程序构建） |
 | demo 开发 | `pnpm demo:dev`（先同步组件源码，再 `wv dev demo`） |
 | demo 构建 | `pnpm demo:build`（同步 + `wv build demo` + 产物校验） |
