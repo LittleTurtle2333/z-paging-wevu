@@ -65,3 +65,41 @@ export function getSystemLanguage(): string {
   }
   return 'zh_CN'
 }
+
+let cachedPlatform: string | null = null
+
+/** 读取运行平台（ios / android / windows / mac / devtools）。 */
+export function getDevicePlatform(): string {
+  if (cachedPlatform !== null) {
+    return cachedPlatform
+  }
+  let platform = ''
+  try {
+    const info = typeof wx.getDeviceInfo === 'function'
+      ? wx.getDeviceInfo()
+      : undefined
+    platform = String(info?.platform ?? '')
+  }
+  catch {
+    platform = ''
+  }
+  if (!platform) {
+    try {
+      platform = String(wx.getSystemInfoSync?.()?.platform ?? '')
+    }
+    catch {
+      platform = ''
+    }
+  }
+  cachedPlatform = platform
+  return platform
+}
+
+/**
+ * 是否运行在 PC 微信（Mac / Windows 客户端）。
+ * PC 端没有手指下拉手势，scroll-view 的原生 refresher 无法被鼠标触发。
+ */
+export function isDesktopPlatform(): boolean {
+  const platform = getDevicePlatform()
+  return platform === 'mac' || platform === 'windows'
+}

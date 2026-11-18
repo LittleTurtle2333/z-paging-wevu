@@ -32,9 +32,35 @@ defineExpose({ updateLeftAndRightWidth })
 </template>
 
 <style scoped>
-.zp-swiper-container { display: flex; flex: 1; flex-direction: column; }
-.zp-swiper-container-fixed { position: fixed; top: var(--zp-swiper-top, 0px); right: 0; bottom: var(--zp-swiper-bottom, 0px); left: 0; width: auto; height: auto; }
-.zp-swiper-super { position: relative; display: flex; flex: 1; flex-direction: row; overflow: hidden; }
-.zp-swiper-left, .zp-swiper-right { flex-shrink: 0; height: 100%; }
-.zp-swiper { flex: 1; width: 100%; height: 100%; }
+.zp-swiper-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.zp-swiper-container-fixed {
+  position: fixed;
+  top: var(--zp-swiper-top, 0px);
+  right: 0;
+  bottom: var(--zp-swiper-bottom, 0px);
+  left: 0;
+  width: auto;
+  height: auto;
+}
+.zp-swiper-super {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  overflow: hidden;
+}
+.zp-swiper-left,
+.zp-swiper-right {
+  flex-shrink: 0;
+  height: 100%;
+}
+.zp-swiper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
 </style>

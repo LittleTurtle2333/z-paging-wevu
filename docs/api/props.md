@@ -75,8 +75,8 @@ type ZPagingWevuFetch = (params: {
 | `watchTouchDirectionChange` | `boolean` | `false` | 监听触摸方向并触发 `touch-direction-change` |
 | `refresherEnabled` | `boolean` | `true` | 启用下拉刷新 |
 | `refresherThreshold` | `number \| string` | `40` | 刷新触发距离 |
-| `useCustomRefresher` | `boolean` | `false` | 使用自定义刷新（逻辑层逐帧计算高度） |
-| `refresherDefaultStyle` | `'black' \| 'white' \| 'none'` | `'black'` | 原生刷新指示器样式；`none` 关闭微信默认刷新区域并启用自绘文案层，位移仍由原生提供 |
+| `useCustomRefresher` | `boolean` | `false` | 使用自定义刷新（位移由 WXS 在视图层更新，逻辑层只处理状态）。scroll-view 模式下现在恒为自定义实现：原生 refresher 由原生接管手势，下拉途中往回推会连带滚动列表，拦不住；保留该字段仅为 API 兼容 |
+| `refresherDefaultStyle` | `'black' \| 'white' \| 'none'` | `'black'` | 原生刷新指示器样式，仅在页面滚动模式（`use-page-scroll`）下生效；scroll-view 模式统一使用内置刷新视图，配色请用 `refresherThemeStyle` |
 | `showRefresherWhenReload` | `boolean` | `false` | reload 时展示刷新状态 |
 | `reloadWhenRefresh` | `boolean` | `true` | 刷新时执行 reload |
 | `refresherThemeStyle` | `string` | `'black'` | 刷新主题 |
@@ -103,9 +103,9 @@ type ZPagingWevuFetch = (params: {
 | `refresherCompleteScrollable` | `boolean` | `false` | 完成状态允许滚动 |
 | `refresherOutRate` | `number` | `0.65` | 拉出距离衰减系数 |
 | `refresherPullRate` | `number` | `0.75` | 拉动距离系数 |
-| `refresherFps` | `number \| string` | `40` | 触摸更新帧率 |
+| `refresherFps` | `number \| string` | `40` | 页面滚动模式下手势更新的帧率上限；`scroll-view` 模式拖动由 WXS 接管，不受此限制 |
 | `refresherMaxAngle` | `number \| string` | `40` | 最大角度配置 |
-| `watchRefresherTouchmove` | `boolean` | `false` | 监听刷新触摸移动 |
+| `watchRefresherTouchmove` | `boolean` | `false` | 开启后按 `refresherFps` 派发 `refresher-touchmove` 事件 |
 | `refresherImgStyle` | `ZPagingWevuStyle` | — | 图片样式 |
 | `refresherTitleStyle` | `ZPagingWevuStyle` | — | 文本样式 |
 | `refresherUpdateTimeStyle` | `ZPagingWevuStyle` | — | 更新时间样式 |

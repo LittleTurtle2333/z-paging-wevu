@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { ZPagingWevuLocaleInput } from './locale'
 import type { ZPagingWevuProps } from './props'
 /**
  * z-paging-wevu：z-paging 2.8.x 的 weapp-vite + wevu 兼容实现。
  *
  * 注意：wevu 自定义组件事件只透传一个 payload，多参数会打包成数组。
  * 因此 @query 的页面处理签名为 queryList([pageNo, pageSize, from])。
- * nvue 专属渲染不在当前小程序目标内，相关方法仅保留兼容入口。
+ * 原版 z-paging 的 nvue 特效方法在这里没有对应实现，仅保留空方法以免迁移时调用报错。
  */
 import type {
   ZPagingWevuApi,
@@ -14,9 +15,9 @@ import type {
   ZPagingWevuRefresherStatus,
   ZPagingWevuResult,
 } from './types'
-import { computed, nextTick, onMounted, onUnmounted, ref, useElementIntersectionObserver, useSelectorQuery, watch } from 'wevu'
-import type { ZPagingWevuLocaleInput } from './locale'
-import { getPagingLocale, onPagingLocaleChange, setPagingLocale, t as vpT, translateText } from './locale'
+import type { WxsPullStatusPayload, WxsScrollBouncePayload } from './wxs-bridge'
+import { computed, nextTick, onMounted, onUnmounted, ref, useElementIntersectionObserver, useNativeInstance, useSelectorQuery, watch } from 'wevu'
+import { getPagingLocale, onPagingLocaleChange, setPagingLocale, translateText, t as vpT } from './locale'
 import { useVirtualList } from './useVirtualList'
 import {
   vpArray,
@@ -25,11 +26,22 @@ import {
   vpNowText,
   vpNumber,
   vpPx,
-  vpText,
   vpUpdateTimeName,
   vpWait,
 } from './utils'
-import { getWindowMetrics } from './window'
+import { getWindowMetrics, isDesktopPlatform } from './window'
+import { wxsBridge } from './wxs-bridge'
+
+defineOptions({
+  methods: {
+    handleWxsScrollBounce(payload: WxsScrollBouncePayload) {
+      wxsBridge.scrollBounce(payload)
+    },
+    handleWxsPullStatus(payload: WxsPullStatusPayload) {
+      wxsBridge.pullStatus(payload)
+    },
+  },
+})
 
 const props = withDefaults(defineProps<ZPagingWevuProps>(), {
   modelValue: () => [],
@@ -180,6 +192,27 @@ const emit = defineEmits<{
   (e: 'scroll-direction-change', direction: 'top' | 'bottom'): void
 }>()
 
+const nativeInstance = useNativeInstance()
+
+/**
+ * 是否走「自定义下拉刷新」实现（WXS 在视图层位移，逻辑层只处理状态）。
+ *
+ * 除了用户显式开启，scroll-view 分支现在**默认**也走这条路径，原因：
+ * scroll-view 的原生 refresher 拉下后往回推会连带把列表滚上去，
+ * 这一段的滚动由原生接管，逻辑层和 WXS 都拦不住（原版在 useCustomRefresher=false 时同样如此）。
+ * 只有自己接管手势（WXS 里 `return false`）才能在松手前锁死列表。
+ *
+ * 以下情况仍不使用：页面滚动模式（usePageScroll，走独立实现）、纯布局模式、
+ * 聊天记录模式、关闭了下拉刷新。
+ * PC 微信（Mac / Windows 客户端）没有手指下拉手势，原生 refresher 无法被鼠标触发，同样必须走这里。
+ */
+const effectiveUseCustomRefresher = computed(
+  () =>
+    props.useCustomRefresher
+    || isDesktopPlatform()
+    || (!props.usePageScroll && !props.layoutOnly && !props.useChatRecordMode && props.refresherEnabled),
+)
+
 const uid = `z-paging-wevu-${Math.random().toString(36).slice(2, 9)}`
 const metrics = getWindowMetrics()
 const pageSize = computed(() => Math.max(1, props.defaultPageSize))
@@ -192,6 +225,15 @@ const noMore = ref(false)
 const firstLoaded = ref(false)
 const refreshing = ref(false)
 const scrollTop = ref(0)
+/** WXS 是否参与本次手势：只在顶部、自定义刷新、未刷新中时更新高度 */
+const wxsPullEnabled = computed(
+  () => effectiveUseCustomRefresher.value
+    && props.refresherEnabled
+    && !props.useChatRecordMode
+    && !refreshing.value
+    // Mac / PC 微信回顶后 scrollTop 可能是 0.x 的小数，留 1px 容差
+    && scrollTop.value <= 1,
+)
 const scrollViewTop = ref(0)
 const scrollViewLeft = ref(0)
 const scrollWithAnimation = ref(false)
@@ -206,6 +248,8 @@ const localPagingList = ref<unknown[] | null>(null)
 const customEmptyErrorText = ref('')
 const refresherStatus = ref<ZPagingWevuRefresherStatus>('default')
 const pullingDistance = ref(0)
+/** 下拉手势期间临时关闭 scroll-view 滚动，和原版 _handleScrollViewBounce 一致 */
+const scrollEnable = ref(true)
 /** 自定义下拉刷新视图的自然高度（测量得到），用于刷新态撑开与最大下拉距离 */
 const customRefresherHeight = ref(0)
 const f2Visible = ref(false)
@@ -236,6 +280,13 @@ let requestedPageSize = pageSize.value
 let replaceOnComplete = false
 let touchStartY = -1
 let lastTouchY = -1
+/** 新手势 / 新刷新开始后，使上一轮尚未执行的收起回调失效。 */
+let refresherRestoreEpoch = 0
+
+/** 自定义下拉刷新的节流状态：避免每个 touchmove 都跨线程更新一次高度 */
+let touchMoveTimer: ReturnType<typeof setTimeout> | null = null
+let pendingPullDy: number | null = null
+let lastTouchMoveAppliedAt = 0
 let lastScrollTop = 0
 let lastScrollHeight = 0
 let keyboardListener: ((result: { height: number }) => void) | null = null
@@ -380,6 +431,23 @@ const refresherText = computed(() => {
 })
 /** 原生下拉刷新模式下的自绘文案层高度，与原生触发阈值对齐。 */
 const refresherHintHeight = computed(() => vpPx(props.refresherThreshold, 40))
+const refresherF2ThresholdPx = computed(() => vpPx(props.refresherF2Threshold, 100))
+/**
+ * 自定义刷新区的固定高度。
+ *
+ * 拖动时不再改 height（height 会触发布局回流），而是让刷新区和内容层一起做
+ * translate3d：刷新区固定在内容层上方，内容层下拉多少，刷新区就跟随多少。
+ */
+const refresherBandHeight = computed(
+  () => Math.max(refresherHintHeight.value, customRefresherHeight.value),
+)
+/**
+ * body 的 transform 统一由 WXS 写入；模板 style 无法覆盖 WXS setStyle。
+ * 松手后通过属性观察器下发位移指令，dragTick 保证终点相同也会再次执行。
+ */
+const dragTick = ref(0)
+/** body 位移的过渡时长，只在逻辑层驱动的状态切换时更新（不跟随拖动中的状态） */
+const bodyTransitionDuration = ref(vpNumber(props.refresherDefaultDuration, 200))
 
 /**
  * 默认箭头图（与 z-paging 一致的素材）：基准朝上，
@@ -528,6 +596,26 @@ function queryRect(
   })
 }
 
+/** 查询 scroll-view 的真实滚动位置，用于纠正丢失最后一次 scroll 事件的情况。 */
+function queryScrollOffset(selector: string): Promise<number | null> {
+  return new Promise((resolve) => {
+    const query = selectorQuery()
+    if (!query) {
+      resolve(null)
+      return
+    }
+    query
+      .select(selector)
+      .scrollOffset((offset) => {
+        const value = Array.isArray(offset) ? offset[0] : offset
+        resolve(
+          value && typeof value.scrollTop === 'number' ? value.scrollTop : null,
+        )
+      })
+      .exec()
+  })
+}
+
 function updateContentHeight() {
   void queryRect(`#${uid} .z-paging-wevu__content`).then((rect) => {
     if (!rect) {
@@ -656,9 +744,13 @@ function resetState() {
 }
 
 function beginRefresher() {
+  refresherRestoreEpoch += 1
   refreshing.value = true
   refresherStatus.value = 'loading'
-  if (props.useCustomRefresher) {
+  // 用独立变量而不是 refresherStatus 决定 transition-duration：拖动途中状态变化
+  // 不应该下发新的位移指令，否则会把 WXS 写进去的拖动位移冲掉
+  bodyTransitionDuration.value = vpNumber(props.refresherDefaultDuration, 200)
+  if (effectiveUseCustomRefresher.value) {
     // 撑到自定义刷新视图的完整高度，否则刷新中内容会被裁成一条
     pullingDistance.value = customRefresherHeight.value
       || vpPx(props.refresherThreshold, 40)
@@ -858,15 +950,19 @@ function clean() {
 }
 
 function endRefresh() {
+  // 首次加载 / 加载更多的 complete 也会调用这里，不能覆盖正在进行的下拉手势。
+  if (!refreshing.value) {
+    return
+  }
+  const restoreEpoch = ++refresherRestoreEpoch
   const delay = vpNumber(props.refresherCompleteDelay, 0)
-  if (!props.useCustomRefresher) {
-    if (!refreshing.value) {
-      refresherStatus.value = 'default'
-      return
-    }
+  if (!effectiveUseCustomRefresher.value) {
     // 原生模式下保持 `refreshing` 直到完成态展示结束，否则原生刷新区域会立即收起
     refresherStatus.value = delay > 0 ? 'complete' : 'default'
     void vpWait(delay).then(() => {
+      if (restoreEpoch !== refresherRestoreEpoch) {
+        return
+      }
       refreshing.value = false
       refresherStatus.value = 'default'
       emit('on-restore')
@@ -876,13 +972,21 @@ function endRefresh() {
   refreshing.value = false
   refresherStatus.value = 'complete'
   void vpWait(delay).then(() => {
+    if (restoreEpoch !== refresherRestoreEpoch) {
+      return
+    }
     /**
      * 收回必须分两步：先保持 complete 状态把高度收成 0，
      * 这样过渡时长才是 refresherCompleteDuration（缓慢收起）；
      * 若和切换 default 放在同一帧，setData 合并后时长变成 0，会瞬间弹回。
      */
+    bodyTransitionDuration.value = vpNumber(props.refresherCompleteDuration, 300)
     pullingDistance.value = 0
+    dragTick.value += 1
     void vpWait(vpNumber(props.refresherCompleteDuration, 300)).then(() => {
+      if (restoreEpoch !== refresherRestoreEpoch) {
+        return
+      }
       refresherStatus.value = 'default'
       emit('on-restore')
     })
@@ -901,7 +1005,7 @@ function closeF2() {
  * 刷新中/完成态需要撑到这个高度，否则会把用户自定义的刷新视图裁成一条细线。
  */
 function updateCustomRefresherHeight() {
-  if (!props.useCustomRefresher) {
+  if (!effectiveUseCustomRefresher.value) {
     return
   }
   void queryRect(`#${uid} .z-paging-wevu__refresher-inner`).then((rect) => {
@@ -1057,6 +1161,10 @@ function handleScroll(event: {
 }) {
   const detail = event?.detail ?? {}
   const top = detail.scrollTop ?? 0
+  // 列表真的往上滚了，说明这是滚动手势而不是下拉，结束本次下拉尝试。
+  if (top > 1) {
+    abortPullGesture()
+  }
   scrollTop.value = top
   emit('scroll', event)
   emit('scroll-top-change', top)
@@ -1088,6 +1196,15 @@ function handleScrollToLower() {
 
 function handleScrollToUpper() {
   emit('scrolltoupper')
+  /**
+   * scrolltoupper 是“接近顶部”的边沿事件，触发时校准一次真实位置：
+   * 部分端上最后一次 scroll 事件会丢失，只靠 scrollTop 残留值会让下拉手势被误判。
+   */
+  void queryScrollOffset(`#${uid} .z-paging-wevu__scroll`).then((top) => {
+    if (top !== null) {
+      scrollTop.value = top
+    }
+  })
 }
 
 function handleRefresherRefresh() {
@@ -1107,7 +1224,7 @@ function handleRefresherRefresh() {
 function handleNativeRefresherPulling(event?: {
   detail?: { dy?: number }
 }) {
-  if (props.useCustomRefresher || refreshing.value) {
+  if (effectiveUseCustomRefresher.value || refreshing.value) {
     return
   }
   const dy = Number(event?.detail?.dy ?? 0)
@@ -1115,44 +1232,118 @@ function handleNativeRefresherPulling(event?: {
   refresherStatus.value = dy >= threshold ? 'release-to-refresh' : 'default'
 }
 
-function eventY(event: {
-  touches?: Array<{ clientY?: number, pageY?: number }>
-  changedTouches?: Array<{ clientY?: number, pageY?: number }>
-}) {
+interface TouchPointLike {
+  clientY?: number
+  pageY?: number
+}
+
+interface TouchEventLike {
+  touches?: TouchPointLike[]
+  changedTouches?: TouchPointLike[]
+}
+
+function eventY(event: TouchEventLike) {
   const touch = event.touches?.[0] ?? event.changedTouches?.[0]
   return touch?.clientY ?? touch?.pageY ?? 0
 }
 
-function handleTouchStart(event: Parameters<typeof eventY>[0]) {
+function handleTouchStart(event: TouchEventLike) {
   const y = eventY(event)
   if (props.watchTouchDirectionChange && lastTouchY >= 0 && y !== lastTouchY) {
     emit('touch-direction-change', y < lastTouchY ? 'top' : 'bottom')
   }
   lastTouchY = y
-  // 同一个手势可能同时命中 scroll-view 内容层与根节点，只记录一次
-  if (touchStartY >= 0) {
-    return
-  }
+  /**
+   * 每次 touchstart 都视为新手势：
+   * 上一次手势有可能没收到 touchend（被 scroll-view 吞掉），
+   * 保留旧起点会让后续下拉全部失效，这里先彻底复位。
+   */
+  clearPendingTouchMove()
+  touchStartY = -1
   if (
     !props.refresherEnabled
-    || !props.useCustomRefresher
-    || scrollTop.value > 0
+    || !effectiveUseCustomRefresher.value
+    // 和 WXS 侧的 wxsPullEnabled 保持同一容差，否则会出现「WXS 能拉但松手不触发刷新」
+    || scrollTop.value > 1
     || refreshing.value
   ) {
     return
   }
+  refresherRestoreEpoch += 1
+  if (refresherStatus.value === 'complete') {
+    refresherStatus.value = 'default'
+  }
   touchStartY = y
+  lastTouchMoveAppliedAt = 0
   emit('refresher-touchstart', y)
 }
 
-function handleTouchMove(event: Parameters<typeof eventY>[0]) {
-  const y = eventY(event)
+/** 自定义下拉刷新：refresherFps 换算出的逻辑层最小更新间隔，非法值回退 40fps */
+const refresherFrameInterval = computed(() => {
+  const raw = Number(props.refresherFps)
+  const fps = Number.isFinite(raw) && raw > 0 ? Math.min(raw, 120) : 40
+  return 1000 / fps
+})
+
+function clearPendingTouchMove() {
+  if (touchMoveTimer !== null) {
+    clearTimeout(touchMoveTimer)
+    touchMoveTimer = null
+  }
+  pendingPullDy = null
+}
+
+/**
+ * 手势被滚动接管时结束本次下拉。
+ * 滚动过程中 scroll-view 可能会吞掉 touchend，若不主动复位，
+ * touchStartY 会一直停在旧值，表现就是“滚一次之后再也下拉不动”。
+ */
+function abortPullGesture() {
   if (touchStartY < 0) {
     return
   }
-  const dy = y - touchStartY
+  touchStartY = -1
+  clearPendingTouchMove()
+  if (refreshing.value) {
+    return
+  }
+  pullingDistance.value = 0
+  // 滚动接管时也让 WXS 清掉已写入的位移，不能只重置逻辑层距离。
+  dragTick.value += 1
+  if (
+    refresherStatus.value === 'release-to-refresh'
+    || refresherStatus.value === 'go-f2'
+  ) {
+    refresherStatus.value = 'default'
+  }
+}
+
+/** 写入待处理位移：只记录最新的手指位置，定时器负责补最后一帧 */
+function flushPendingTouchMove() {
+  if (pendingPullDy === null) {
+    return
+  }
+  const dy = pendingPullDy
+  pendingPullDy = null
+  lastTouchMoveAppliedAt = Date.now()
+  // watch-refresher-touchmove 未启用时不向页面派发逐帧事件，省掉一次 emit
+  // 拖动过程中的高度由 WXS 直接改，逻辑层这里不再 setData
+  applyPullDistance(dy, props.watchRefresherTouchmove, false)
+}
+
+function applyPullDistance(
+  dy: number,
+  emitTouchmove: boolean,
+  applyHeight = true,
+) {
   if (dy <= 0) {
-    pullingDistance.value = 0
+    if (applyHeight) {
+      pullingDistance.value = 0
+    }
+    // 不松手推回起点：状态也要退回默认，否则松手会误触发刷新
+    if (!refreshing.value && refresherStatus.value !== 'default') {
+      refresherStatus.value = 'default'
+    }
     return
   }
   const threshold = vpPx(props.refresherThreshold, 40)
@@ -1162,23 +1353,19 @@ function handleTouchMove(event: Parameters<typeof eventY>[0]) {
       ? threshold + (rawDistance - threshold) * props.refresherOutRate
       : rawDistance
   /**
-   * 最大下拉距离取三者最大值：
-   * 自定义刷新视图自然高度（保证能完整露出）、
-   * 二楼触发阈值（否则开了二楼永远拉不到触发线，二楼就进不去）。
+   * 与原版一致：下拉距离不设上限。
+   * 超过阈值后按 refresherOutRate 阻尼增长，用户想拉多远就拉多远，
+   * 不能在这里截断，否则手感会变成“拉到阈值就卡住”。
    */
-  const f2Distance = props.refresherF2Enabled
-    ? vpPx(props.refresherF2Threshold, 100) + threshold
-    : 0
-  const maxDistance = customRefresherHeight.value > 0
-    ? Math.max(threshold, customRefresherHeight.value, f2Distance)
-    : Number.POSITIVE_INFINITY
-  pullingDistance.value = Math.min(pulled, maxDistance)
+  if (applyHeight) {
+    pullingDistance.value = pulled
+  }
   const previous = refresherStatus.value
   refresherStatus.value
     = props.refresherF2Enabled
-      && pullingDistance.value >= vpPx(props.refresherF2Threshold, 100)
+      && pulled >= refresherF2ThresholdPx.value
       ? 'go-f2'
-      : pullingDistance.value >= threshold
+      : pulled >= threshold
         ? 'release-to-refresh'
         : 'default'
   if (
@@ -1188,21 +1375,53 @@ function handleTouchMove(event: Parameters<typeof eventY>[0]) {
   ) {
     wx.vibrateShort({ type: 'light' })
   }
-  emit('refresher-touchmove', {
-    pullingDistance: pullingDistance.value,
-    dy,
-    viewHeight: viewportHeight.value,
-    rate: props.refresherPullRate,
-  })
+  if (emitTouchmove) {
+    emit('refresher-touchmove', {
+      pullingDistance: pulled,
+      dy,
+      viewHeight: viewportHeight.value,
+      rate: props.refresherPullRate,
+    })
+  }
 }
 
-function handleTouchEnd(event: Parameters<typeof eventY>[0]) {
+function handleTouchMove(event: TouchEventLike) {
   const y = eventY(event)
   if (touchStartY < 0) {
     return
   }
+  const dy = y - touchStartY
+  pendingPullDy = dy
+  const interval = refresherFrameInterval.value
+  const now = Date.now()
+  const elapsed = now - lastTouchMoveAppliedAt
+  if (elapsed >= interval) {
+    flushPendingTouchMove()
+    return
+  }
+  if (touchMoveTimer === null) {
+    touchMoveTimer = setTimeout(() => {
+      touchMoveTimer = null
+      flushPendingTouchMove()
+    }, interval - elapsed)
+  }
+}
+
+function handleTouchEnd(event: TouchEventLike) {
+  const y = eventY(event)
+  if (touchStartY < 0) {
+    clearPendingTouchMove()
+    // 本次手势逻辑层没接管（例如顶部判断没通过），也要把 WXS 写的位移收回来
+    dragTick.value += 1
+    return
+  }
+  // 用松手时的真实位置结算，避免节流把最后一段位移丢掉
+  clearPendingTouchMove()
+  applyPullDistance(y - touchStartY, false)
   emit('refresher-touchend', y)
   touchStartY = -1
+  // 兜底释放滚动锁；如果进入刷新态，scroll-y 会被 refreshing 条件继续关掉
+  scrollEnable.value = true
   if (refresherStatus.value === 'go-f2' && props.showRefresherF2) {
     f2Visible.value = true
     emit('refresher-f2-change', true)
@@ -1216,6 +1435,8 @@ function handleTouchEnd(event: Parameters<typeof eventY>[0]) {
     pullingDistance.value = 0
     refresherStatus.value = 'default'
   }
+  // 通知 WXS 结算位移，即使逻辑层的目标距离未变也必须执行。
+  dragTick.value += 1
 }
 
 function handleContentTouch() {
@@ -1379,7 +1600,61 @@ const api: ZPagingWevuApi = {
   setSpecialEffects: () => {},
 }
 
-defineExpose({ ...api })
+/**
+ * 和原版 _handleScrollViewBounce 一致：下拉手势开始后关掉 scroll-view 滚动，
+ * 松手后恢复，避免下拉过程中把列表继续往上推。
+ */
+function handleWxsScrollBounce(payload: { bounce?: boolean } | boolean) {
+  const bounce = typeof payload === 'boolean'
+    ? payload
+    : (payload?.bounce ?? true)
+  if (!bounce && scrollTop.value > 5) {
+    return
+  }
+  scrollEnable.value = bounce
+  // wevu 的响应式更新可能晚一帧才 setData；下拉锁需要抢在 scroll-view 原生滚动前生效，
+  // 所以这里再直接写一次原生 data。
+  void nativeInstance.setData({ scrollEnable: bounce })
+}
+
+/**
+ * WXS 仅在跨阈值时同步状态，供自定义刷新插槽、二楼提示、震动及事件使用。
+ * 不回写 pullingDistance，避免状态切换打断 WXS 正在处理的拖动位移。
+ */
+function handleWxsPullStatus(payload: WxsPullStatusPayload) {
+  if (touchStartY < 0 || refreshing.value) {
+    return
+  }
+  const next = payload.status as typeof refresherStatus.value
+  if (refresherStatus.value === next) {
+    return
+  }
+  const previous = refresherStatus.value
+  refresherStatus.value = next
+  if (
+    next !== 'default'
+    && previous === 'default'
+    && props.refresherVibrate
+  ) {
+    wx.vibrateShort({ type: 'light' })
+  }
+  if (props.watchRefresherTouchmove) {
+    emit('refresher-touchmove', {
+      pullingDistance: payload.height,
+      dy: payload.dy,
+      viewHeight: viewportHeight.value,
+      rate: props.refresherPullRate,
+    })
+  }
+}
+
+// 每个分页实例各自注册，避免 swiper 等多列表页面把状态更新到最后创建的实例。
+wxsBridge.register(uid, {
+  scrollBounce: handleWxsScrollBounce,
+  pullStatus: handleWxsPullStatus,
+})
+
+defineExpose({ ...api, handleWxsPullStatus, handleWxsScrollBounce })
 
 /**
  * 末尾哨兵观察器（兜底）。
@@ -1434,15 +1709,18 @@ onMounted(() => {
     setTimeout(() => void reload(), 0)
   }
   void nextTick().then(() => bottomSentinel.observe())
-  if (props.useCustomRefresher) {
+  if (effectiveUseCustomRefresher.value) {
     // 先量一次自定义刷新视图高度，避免首次刷新时高度不准
     void nextTick().then(() => updateCustomRefresherHeight())
   }
 })
 
 onUnmounted(() => {
+  refresherRestoreEpoch += 1
+  wxsBridge.unregister(uid)
   bottomSentinel.disconnect()
   props.controller?.unbind(api)
+  clearPendingTouchMove()
   if (keyboardListener) {
     wx.offKeyboardHeightChange(keyboardListener)
     keyboardListener = null
@@ -1454,6 +1732,8 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- 自定义下拉刷新：视图层直接更新刷新区高度，避免每帧 touchmove 走 setData -->
+  <wxs module="refresherWxs" src="./wxs/refresher.wxs" />
   <view
     :id="uid"
     class="z-paging-wevu"
@@ -1469,9 +1749,6 @@ onUnmounted(() => {
       `--vp-fixed-top:${fixedTop || 0}px;--vp-bg:${bgColor || 'transparent'};--vp-height:${height || (!usePageScroll && !fixed ? '100%' : 'auto')};--vp-width:${width || '100%'};--vp-max-width:${maxWidth || 'none'};--vp-min-height:${autoFullHeight && isPageScroll() ? `${metrics.windowHeight - (fixedTop || 0)}px` : '0px'}`,
       pagingStyle,
     ]"
-    @touchstart="handleTouchStart"
-    @touchmove="handleTouchMove"
-    @touchend="handleTouchEnd"
   >
     <view
       v-if="useRefresherStatusBarPlaceholder"
@@ -1487,7 +1764,10 @@ onUnmounted(() => {
 
       <view class="z-paging-wevu__main">
         <template v-if="!usePageScroll">
-          <view v-if="topSlotOutside" class="z-paging-wevu__top">
+          <view
+            v-if="topSlotOutside"
+            class="z-paging-wevu__top"
+          >
             <slot name="top" />
           </view>
 
@@ -1498,7 +1778,7 @@ onUnmounted(() => {
               topSlotOutside || !fixed ? '' : `--vp-scroll-height:${viewportHeight}px`,
               { backgroundColor: bgColorContent },
             ]"
-            :scroll-y="scrollable && (!refreshing || refresherRefreshingScrollable)"
+            :scroll-y="scrollable && scrollEnable && (!refreshing || refresherRefreshingScrollable)"
             :scroll-top="scrollViewTop"
             :scroll-left="scrollViewLeft"
             :scroll-with-animation="scrollWithAnimation"
@@ -1506,7 +1786,7 @@ onUnmounted(() => {
             :refresher-enabled="
               refresherEnabled
                 && !layoutOnly
-                && !useCustomRefresher
+                && !effectiveUseCustomRefresher
                 && !useChatRecordMode
             "
             :refresher-triggered="refreshing && !useChatRecordMode"
@@ -1520,287 +1800,318 @@ onUnmounted(() => {
             @scrolltoupper="handleScrollToUpper"
             @scroll="handleScroll"
             @scrollend="handleScrollEnd"
+            @touchstart="handleTouchStart"
+            @touchend="handleTouchEnd"
+            @touchcancel="handleTouchEnd"
           >
-            <!-- 自定义下拉刷新的手势需要绑定在 scroll-view 内容层，否则 scroll-view 会吞掉父级的 touchmove -->
+            <!-- 和原版一致：WXS 直接绑在 scroll-view 的内容触控节点上。
+                 这个节点不能同时绑 JS 的 @touchstart/@touchend：
+                 编译成 WXML 后会和 WXS 的 bindtouchstart 重名（重复属性），
+                 后写入的内联绑定会覆盖 WXS 绑定，导致 WXS 完全收不到事件。
+                 JS 侧的起止逻辑统一放在 scroll-view 上（冒泡上来）。 -->
             <view
               class="z-paging-wevu__touch"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-              @touchcancel="handleTouchEnd"
+              :data-enabled="wxsPullEnabled"
+              :data-owner-id="uid"
+              :data-threshold="refresherHintHeight"
+              :data-f2-enabled="refresherF2Enabled"
+              :data-f2-threshold="refresherF2ThresholdPx"
+              :data-rate="refresherPullRate"
+              :data-out-rate="refresherOutRate"
+              bindtouchstart="{{ refresherWxs.touchstart }}"
+              bindtouchmove="{{ refresherWxs.touchmove }}"
+              bindtouchend="{{ refresherWxs.touchend }}"
+              bindtouchcancel="{{ refresherWxs.touchend }}"
             >
               <view v-if="!topSlotOutside" class="z-paging-wevu__top">
                 <slot name="top" />
               </view>
 
-            <view
-              v-if="
-                !useCustomRefresher
-                  && refresherEnabled
-                  && refresherDefaultStyle === 'none'
-                  && !useChatRecordMode
-              "
-              class="z-paging-wevu__refresher-hint"
-              :style="`height:${refresherHintHeight}px;margin-top:-${refresherHintHeight}px;background:${refresherBackground || bgColor || 'transparent'};`"
-            >
               <view
-                v-if="refresherStatus === 'loading'"
-                class="z-paging-wevu__refresher-spinner"
-                :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
-              />
-              <image
-                v-else-if="refresherStatus === 'complete'"
-                class="z-paging-wevu__refresher-arrow"
-                :src="refresherCompleteIconSrc"
-              />
-              <image
-                v-else
-                class="z-paging-wevu__refresher-arrow"
-                :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
-                :src="refresherArrowSrc"
-              />
-              <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
-              <text
-                v-if="showRefresherUpdateTime && refresherUpdateTime"
-                class="z-paging-wevu__refresher-time"
-                :style="refresherUpdateTimeStyle"
+                v-if="
+                  !effectiveUseCustomRefresher
+                    && refresherEnabled
+                    && refresherDefaultStyle === 'none'
+                    && !useChatRecordMode
+                "
+                class="z-paging-wevu__refresher-hint"
+                :style="`height:${refresherHintHeight}px;margin-top:-${refresherHintHeight}px;background:${refresherBackground || bgColor || 'transparent'};`"
               >
-                {{ refresherUpdateTimeTitle }}{{ refresherUpdateTime }}
-              </text>
-            </view>
-
-            <view
-              v-if="useCustomRefresher"
-              class="z-paging-wevu__refresher"
-              :style="`height:${pullingDistance}px;transition-duration:${refresherStatus === 'complete' ? refresherCompleteDuration : (refresherStatus === 'loading' ? refresherDefaultDuration : 0)}ms;background:${refresherBackground || bgColor || 'transparent'};`"
-            >
-              <!-- 内层容器保持自然高度，用于测量自定义刷新视图的真实高度 -->
-              <view class="z-paging-wevu__refresher-inner">
-              <slot v-if="refresherStatus === 'go-f2'" name="refresherF2">
-                <text class="z-paging-wevu__refresher-text">松手进入二楼</text>
-              </slot>
-              <slot v-else name="refresher" :refresherStatus="refresherStatus">
-                <image
-                  v-if="!refresherImage && refresherStatus === 'complete'"
-                  class="z-paging-wevu__refresher-arrow"
-                  :src="refresherCompleteIconSrc"
-                  :style="refresherImgStyle"
+                <view
+                  v-if="refresherStatus === 'loading'"
+                  class="z-paging-wevu__refresher-spinner"
+                  :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
                 />
                 <image
-                  v-else-if="!refresherImage && refresherStatus !== 'loading'"
+                  v-else-if="refresherStatus === 'complete'"
+                  class="z-paging-wevu__refresher-arrow"
+                  :src="refresherCompleteIconSrc"
+                />
+                <image
+                  v-else
                   class="z-paging-wevu__refresher-arrow"
                   :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
                   :src="refresherArrowSrc"
-                  :style="refresherImgStyle"
                 />
-                <view
-                  v-else-if="!refresherImage && refresherStatus === 'loading'"
-                  class="z-paging-wevu__refresher-spinner"
-                  :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
-                  :style="refresherImgStyle"
-                />
-                <image
-                  v-if="refresherImage"
-                  class="z-paging-wevu__refresher-img"
-                  :class="{
-                    'z-paging-wevu__refresher-img--animated':
-                      refresherStatus === 'loading'
-                      && refresherRefreshingAnimated,
-                  }"
-                  :src="refresherImage"
-                  :style="refresherImgStyle"
-                />
-                <text
-                  class="z-paging-wevu__refresher-text"
-                  :style="refresherTitleStyle"
-                >
-                  {{ refresherText }}
-                </text>
+                <text class="z-paging-wevu__refresher-text">{{ refresherText }}</text>
                 <text
                   v-if="showRefresherUpdateTime && refresherUpdateTime"
                   class="z-paging-wevu__refresher-time"
                   :style="refresherUpdateTimeStyle"
                 >
                   {{ refresherUpdateTimeTitle }}{{ refresherUpdateTime }}
-                  </text>
-                  </slot>
-                  </view>
-                  </view>
-
-                  <view
-                  class="z-paging-wevu__content"
-              :class="pagingContentClass"
-              :style="[{ backgroundColor: bgColorContent }, pagingContentStyle]"
-              @click="handleContentTouch"
-            >
-              <view v-if="showLoading" class="z-paging-wevu__loading">
-                <slot name="loading">
-                  <text class="z-paging-wevu__more-text">{{ systemLoadingText }}</text>
-                </slot>
+                </text>
               </view>
 
-              <template v-if="useVirtualList && isInnerVirtualList">
-                <slot name="header" />
-                <view class="z-paging-wevu__virtual" :style="innerListStyle">
-                  <view :style="`height:${virtualView.placeholderTop}px;`" />
+              <!--
+              拖动和收起的 transform 都由 WXS 写入，避免模板 style 无法覆盖 WXS 样式。
+              逻辑层仅在松手 / 刷新状态切换时下发指令，不参与逐帧拖动。
+            -->
+              <view
+                class="z-paging-wevu__body"
+                :prop="effectiveUseCustomRefresher
+                  ? `${pullingDistance}:${bodyTransitionDuration}:${dragTick}`
+                  : ''"
+                change:prop="{{ refresherWxs.propObserver }}"
+              >
+                <view
+                  v-if="effectiveUseCustomRefresher"
+                  class="z-paging-wevu__refresher"
+                  :style="`position:relative;height:${refresherBandHeight}px;margin-top:-${refresherBandHeight}px;background:${refresherBackground || bgColor || 'transparent'};`"
+                >
+                  <!-- 内层容器保持自然高度，用于测量自定义刷新视图的真实高度；
+                   至少撑到 refresherThreshold，和原版一样留出刷新区域，否则只剩一行文字的高度 -->
                   <view
-                    v-for="cell in virtualView.renderList"
-                    :id="`${uid}-cell-${cell.index}`"
-                    :key="cell.zp_index"
-                    class="z-paging-wevu__cell"
-                    :style="innerCellStyle"
-                    @click="emit('inner-cell-click', cell.item, cell.index)"
+                    class="z-paging-wevu__refresher-inner"
+                    :style="{ minHeight: `${refresherHintHeight}px` }"
                   >
-                    <slot name="cell" :item="cell.item" :index="cell.index">
-                      {{
-                        cell.item
-                      }}
+                    <slot v-if="refresherStatus === 'go-f2'" name="refresherF2">
+                      <text class="z-paging-wevu__refresher-text">松手进入二楼</text>
+                    </slot>
+                    <slot v-else name="refresher" :refresherStatus="refresherStatus">
+                      <image
+                        v-if="!refresherImage && refresherStatus === 'complete'"
+                        class="z-paging-wevu__refresher-arrow"
+                        :src="refresherCompleteIconSrc"
+                        :style="refresherImgStyle"
+                      />
+                      <image
+                        v-else-if="!refresherImage && refresherStatus !== 'loading'"
+                        class="z-paging-wevu__refresher-arrow"
+                        :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+                        :src="refresherArrowSrc"
+                        :style="refresherImgStyle"
+                      />
+                      <view
+                        v-else-if="!refresherImage && refresherStatus === 'loading'"
+                        class="z-paging-wevu__refresher-spinner"
+                        :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+                        :style="refresherImgStyle"
+                      />
+                      <image
+                        v-if="refresherImage"
+                        class="z-paging-wevu__refresher-img"
+                        :class="{
+                          'z-paging-wevu__refresher-img--animated':
+                            refresherStatus === 'loading'
+                            && refresherRefreshingAnimated,
+                        }"
+                        :src="refresherImage"
+                        :style="refresherImgStyle"
+                      />
+                      <!-- 内置文案和自定义插槽共享 WXS 通知的状态，避免二楼切换后残留显隐样式。 -->
+                      <text
+                        class="z-paging-wevu__refresher-text"
+                        :style="refresherTitleStyle"
+                      >
+                        {{ refresherText }}
+                      </text>
+                      <text
+                        v-if="showRefresherUpdateTime && refresherUpdateTime"
+                        class="z-paging-wevu__refresher-time"
+                        :style="refresherUpdateTimeStyle"
+                      >
+                        {{ refresherUpdateTimeTitle }}{{ refresherUpdateTime }}
+                      </text>
                     </slot>
                   </view>
-                  <view
-                    :style="`height:${virtualView.placeholderBottom}px;`"
-                  />
                 </view>
-                <slot name="footer" />
-              </template>
-              <!-- 内置列表模式：由组件渲染列表，cell 内容通过 #cell 插槽提供 -->
-              <template v-else-if="useInnerList">
-                <slot name="header" />
-                <view
-                  v-for="(item, index) in list"
-                  :key="index"
-                  class="z-paging-wevu__cell"
-                  :style="innerCellStyle"
-                  @click="emit('inner-cell-click', item, Number(index))"
-                >
-                  <slot name="cell" :item="item" :index="index">
-                    {{ item }}
-                  </slot>
-                </view>
-                <slot name="footer" />
-              </template>
-              <slot v-else />
 
-              <!--
+                <view
+                  class="z-paging-wevu__content"
+                  :class="pagingContentClass"
+                  :style="[{ backgroundColor: bgColorContent }, pagingContentStyle]"
+                  @click="handleContentTouch"
+                >
+                  <view v-if="showLoading" class="z-paging-wevu__loading">
+                    <slot name="loading">
+                      <text class="z-paging-wevu__more-text">{{ systemLoadingText }}</text>
+                    </slot>
+                  </view>
+
+                  <template v-if="useVirtualList && isInnerVirtualList">
+                    <slot name="header" />
+                    <view class="z-paging-wevu__virtual" :style="innerListStyle">
+                      <view :style="`height:${virtualView.placeholderTop}px;`" />
+                      <view
+                        v-for="cell in virtualView.renderList"
+                        :id="`${uid}-cell-${cell.index}`"
+                        :key="cell.zp_index"
+                        class="z-paging-wevu__cell"
+                        :style="innerCellStyle"
+                        @click="emit('inner-cell-click', cell.item, cell.index)"
+                      >
+                        <slot name="cell" :item="cell.item" :index="cell.index">
+                          {{
+                            cell.item
+                          }}
+                        </slot>
+                      </view>
+                      <view
+                        :style="`height:${virtualView.placeholderBottom}px;`"
+                      />
+                    </view>
+                    <slot name="footer" />
+                  </template>
+                  <!-- 内置列表模式：由组件渲染列表，cell 内容通过 #cell 插槽提供 -->
+                  <template v-else-if="useInnerList">
+                    <slot name="header" />
+                    <view
+                      v-for="(item, index) in list"
+                      :key="index"
+                      class="z-paging-wevu__cell"
+                      :style="innerCellStyle"
+                      @click="emit('inner-cell-click', item, Number(index))"
+                    >
+                      <slot name="cell" :item="item" :index="index">
+                        {{ item }}
+                      </slot>
+                    </view>
+                    <slot name="footer" />
+                  </template>
+                  <slot v-else />
+
+                  <!--
                 聊天记录模式：列表整体倒置，DOM 末尾才是视觉顶部，
                 因此加载历史消息 / 无更多消息放在列表之后（视觉顶部，更早消息一侧）。
               -->
-              <view
-                v-if="
-                  useChatRecordMode && (loading || showChatLoadingWhenReload)
-                "
-                class="z-paging-wevu__chat-loading"
-              >
-                <slot name="chatLoading" :loadingMoreStatus="loadingStatus">
                   <view
-                    class="z-paging-wevu__refresher-spinner z-paging-wevu__refresher-spinner--animated"
-                  />
-                </slot>
-              </view>
-              <!-- 与原版一致：无更多消息时不显示任何内置文案，仅在提供 chatNoMore 插槽时展示 -->
-              <view
-                v-if="useChatRecordMode && noMore"
-                class="z-paging-wevu__chat-no-more"
-              >
-                <slot name="chatNoMore" />
-              </view>
-
-              <view
-                v-if="showEmpty"
-                class="z-paging-wevu__empty"
-                :class="{
-                  'z-paging-wevu__empty--fixed': emptyViewFixed,
-                  'z-paging-wevu__empty--center': emptyViewCenter,
-                }"
-                :style="emptyViewSuperStyle"
-                @click="emit('empty-view-click')"
-              >
-                <slot name="empty" :isLoadFailed="failed || isLoadFailed">
-                  <image
-                    v-if="emptyImage"
-                    class="z-paging-wevu__empty-img"
-                    :src="emptyImage"
-                  />
-                  <text class="z-paging-wevu__empty-text">
-                    {{
-                      customEmptyErrorText || emptyText
-                    }}
-                  </text>
-                  <view
-                    v-if="showEmptyReload"
-                    id="z-paging-wevu-empty-reload"
-                    class="z-paging-wevu__empty-reload"
-                    @click.stop="handleEmptyViewReload"
+                    v-if="
+                      useChatRecordMode && (loading || showChatLoadingWhenReload)
+                    "
+                    class="z-paging-wevu__chat-loading"
                   >
-                    {{ emptyReloadText }}
+                    <slot name="chatLoading" :loadingMoreStatus="loadingStatus">
+                      <view
+                        class="z-paging-wevu__refresher-spinner z-paging-wevu__refresher-spinner--animated"
+                      />
+                    </slot>
                   </view>
-                </slot>
-              </view>
+                  <!-- 与原版一致：无更多消息时不显示任何内置文案，仅在提供 chatNoMore 插槽时展示 -->
+                  <view
+                    v-if="useChatRecordMode && noMore"
+                    class="z-paging-wevu__chat-no-more"
+                  >
+                    <slot name="chatNoMore" />
+                  </view>
 
-              <view
-                v-if="showLoadingMore"
-                class="z-paging-wevu__more"
-                :style="loadingMoreCustomStyle"
-                @click="doLoadMore('click')"
-              >
-                <slot v-if="failed" name="loadingMoreFail">
-                  <text
-                    class="z-paging-wevu__more-text"
-                    :style="loadingMoreTitleCustomStyle"
-                  >
-                    {{ loadingMoreText }}
-                  </text>
-                </slot>
-                <slot
-                  v-else-if="loading || loadingMoreDefaultAsLoading"
-                  name="loadingMoreLoading"
-                >
-                  <image
-                    v-if="loadingMoreLoadingIconCustomImage"
-                    class="z-paging-wevu__more-icon"
-                    :src="loadingMoreLoadingIconCustomImage"
-                    :style="loadingMoreLoadingIconCustomStyle"
-                  />
-                  <text
-                    class="z-paging-wevu__more-text"
-                    :style="loadingMoreTitleCustomStyle"
-                  >
-                    {{ loadingMoreText }}
-                  </text>
-                </slot>
-                <slot v-else-if="noMore" name="loadingMoreNoMore">
                   <view
-                    v-if="showLoadingMoreNoMoreLine"
-                    class="z-paging-wevu__no-more-line"
-                    :style="loadingMoreNoMoreLineCustomStyle"
-                  />
-                  <text
-                    class="z-paging-wevu__more-text"
-                    :style="loadingMoreTitleCustomStyle"
+                    v-if="showEmpty"
+                    class="z-paging-wevu__empty"
+                    :class="{
+                      'z-paging-wevu__empty--fixed': emptyViewFixed,
+                      'z-paging-wevu__empty--center': emptyViewCenter,
+                    }"
+                    :style="emptyViewSuperStyle"
+                    @click="emit('empty-view-click')"
                   >
-                    {{ loadingMoreText }}
-                  </text>
+                    <slot name="empty" :isLoadFailed="failed || isLoadFailed">
+                      <image
+                        v-if="emptyImage"
+                        class="z-paging-wevu__empty-img"
+                        :src="emptyImage"
+                      />
+                      <text class="z-paging-wevu__empty-text">
+                        {{
+                          customEmptyErrorText || emptyText
+                        }}
+                      </text>
+                      <view
+                        v-if="showEmptyReload"
+                        id="z-paging-wevu-empty-reload"
+                        class="z-paging-wevu__empty-reload"
+                        @click.stop="handleEmptyViewReload"
+                      >
+                        {{ emptyReloadText }}
+                      </view>
+                    </slot>
+                  </view>
+
                   <view
-                    v-if="showLoadingMoreNoMoreLine"
-                    class="z-paging-wevu__no-more-line z-paging-wevu__no-more-line--right"
-                    :style="loadingMoreNoMoreLineCustomStyle"
-                  />
-                </slot>
-                <slot v-else name="loadingMoreDefault">
-                  <text
-                    v-if="showDefaultLoadingMoreText"
-                    class="z-paging-wevu__more-text"
-                    :style="loadingMoreTitleCustomStyle"
+                    v-if="showLoadingMore"
+                    class="z-paging-wevu__more"
+                    :style="loadingMoreCustomStyle"
+                    @click="doLoadMore('click')"
                   >
-                    {{ loadingMoreText }}
-                  </text>
-                </slot>
-              </view>
-              <!-- 末尾哨兵：交给 IntersectionObserver 兜底，避免“停在底部但没有新的 scroll 事件”导致不触发加载 -->
-              <view
-                :id="`${uid}-sentinel`"
-                class="z-paging-wevu__sentinel"
-              />
+                    <slot v-if="failed" name="loadingMoreFail">
+                      <text
+                        class="z-paging-wevu__more-text"
+                        :style="loadingMoreTitleCustomStyle"
+                      >
+                        {{ loadingMoreText }}
+                      </text>
+                    </slot>
+                    <slot
+                      v-else-if="loading || loadingMoreDefaultAsLoading"
+                      name="loadingMoreLoading"
+                    >
+                      <image
+                        v-if="loadingMoreLoadingIconCustomImage"
+                        class="z-paging-wevu__more-icon"
+                        :src="loadingMoreLoadingIconCustomImage"
+                        :style="loadingMoreLoadingIconCustomStyle"
+                      />
+                      <text
+                        class="z-paging-wevu__more-text"
+                        :style="loadingMoreTitleCustomStyle"
+                      >
+                        {{ loadingMoreText }}
+                      </text>
+                    </slot>
+                    <slot v-else-if="noMore" name="loadingMoreNoMore">
+                      <view
+                        v-if="showLoadingMoreNoMoreLine"
+                        class="z-paging-wevu__no-more-line"
+                        :style="loadingMoreNoMoreLineCustomStyle"
+                      />
+                      <text
+                        class="z-paging-wevu__more-text"
+                        :style="loadingMoreTitleCustomStyle"
+                      >
+                        {{ loadingMoreText }}
+                      </text>
+                      <view
+                        v-if="showLoadingMoreNoMoreLine"
+                        class="z-paging-wevu__no-more-line z-paging-wevu__no-more-line--right"
+                        :style="loadingMoreNoMoreLineCustomStyle"
+                      />
+                    </slot>
+                    <slot v-else name="loadingMoreDefault">
+                      <text
+                        v-if="showDefaultLoadingMoreText"
+                        class="z-paging-wevu__more-text"
+                        :style="loadingMoreTitleCustomStyle"
+                      >
+                        {{ loadingMoreText }}
+                      </text>
+                    </slot>
+                  </view>
+                  <!-- 末尾哨兵：交给 IntersectionObserver 兜底，避免“停在底部但没有新的 scroll 事件”导致不触发加载 -->
+                  <view
+                    :id="`${uid}-sentinel`"
+                    class="z-paging-wevu__sentinel"
+                  />
+                </view>
               </view>
             </view>
           </scroll-view>
@@ -1810,13 +2121,17 @@ onUnmounted(() => {
           <view
             class="z-paging-wevu__top"
             :class="{ 'z-paging-wevu__top--sticky': stickyTop }"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+            @touchcancel="handleTouchEnd"
           >
             <slot name="top" />
           </view>
 
           <view
             v-if="
-              !useCustomRefresher
+              !effectiveUseCustomRefresher
                 && refresherEnabled
                 && refresherDefaultStyle === 'none'
                 && !useChatRecordMode
@@ -1851,55 +2166,59 @@ onUnmounted(() => {
           </view>
 
           <view
-            v-if="useCustomRefresher"
+            v-if="effectiveUseCustomRefresher"
             class="z-paging-wevu__refresher"
             :style="`height:${pullingDistance}px;transition-duration:${refresherStatus === 'complete' ? refresherCompleteDuration : (refresherStatus === 'loading' ? refresherDefaultDuration : 0)}ms;background:${refresherBackground || bgColor || 'transparent'};`"
           >
-            <!-- 内层容器保持自然高度，用于测量自定义刷新视图的真实高度 -->
-            <view class="z-paging-wevu__refresher-inner">
-            <slot v-if="refresherStatus === 'go-f2'" name="refresherF2">
-              <text class="z-paging-wevu__refresher-text">松手进入二楼</text>
-            </slot>
-            <slot v-else name="refresher" :refresherStatus="refresherStatus">
-              <image
-                v-if="!refresherImage && refresherStatus === 'complete'"
-                class="z-paging-wevu__refresher-arrow"
-                :src="refresherCompleteIconSrc"
-                :style="refresherImgStyle"
-              />
-              <image
-                v-else-if="!refresherImage && refresherStatus !== 'loading'"
-                class="z-paging-wevu__refresher-arrow"
-                :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
-                :src="refresherArrowSrc"
-                :style="refresherImgStyle"
-              />
-              <view
-                v-else-if="!refresherImage && refresherStatus === 'loading'"
-                class="z-paging-wevu__refresher-spinner"
-                :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
-                :style="refresherImgStyle"
-              />
-              <image
-                v-if="refresherImage"
-                class="z-paging-wevu__refresher-img"
-                :src="refresherImage"
-                :style="refresherImgStyle"
-              />
-              <text
-                class="z-paging-wevu__refresher-text"
-                :style="refresherTitleStyle"
-              >
-                {{ refresherText }}
-              </text>
-              <text
-                v-if="showRefresherUpdateTime && refresherUpdateTime"
-                class="z-paging-wevu__refresher-time"
-                :style="refresherUpdateTimeStyle"
-              >
-                {{ refresherUpdateTimeTitle }}{{ refresherUpdateTime }}
-              </text>
-            </slot>
+            <!-- 内层容器保持自然高度，用于测量自定义刷新视图的真实高度；
+                 至少撑到 refresherThreshold，和原版一样留出刷新区域 -->
+            <view
+              class="z-paging-wevu__refresher-inner"
+              :style="{ minHeight: `${refresherHintHeight}px` }"
+            >
+              <slot v-if="refresherStatus === 'go-f2'" name="refresherF2">
+                <text class="z-paging-wevu__refresher-text">松手进入二楼</text>
+              </slot>
+              <slot v-else name="refresher" :refresherStatus="refresherStatus">
+                <image
+                  v-if="!refresherImage && refresherStatus === 'complete'"
+                  class="z-paging-wevu__refresher-arrow"
+                  :src="refresherCompleteIconSrc"
+                  :style="refresherImgStyle"
+                />
+                <image
+                  v-else-if="!refresherImage && refresherStatus !== 'loading'"
+                  class="z-paging-wevu__refresher-arrow"
+                  :class="{ 'z-paging-wevu__refresher-arrow--down': refresherStatus !== 'release-to-refresh' }"
+                  :src="refresherArrowSrc"
+                  :style="refresherImgStyle"
+                />
+                <view
+                  v-else-if="!refresherImage && refresherStatus === 'loading'"
+                  class="z-paging-wevu__refresher-spinner"
+                  :class="{ 'z-paging-wevu__refresher-spinner--animated': refresherRefreshingAnimated }"
+                  :style="refresherImgStyle"
+                />
+                <image
+                  v-if="refresherImage"
+                  class="z-paging-wevu__refresher-img"
+                  :src="refresherImage"
+                  :style="refresherImgStyle"
+                />
+                <text
+                  class="z-paging-wevu__refresher-text"
+                  :style="refresherTitleStyle"
+                >
+                  {{ refresherText }}
+                </text>
+                <text
+                  v-if="showRefresherUpdateTime && refresherUpdateTime"
+                  class="z-paging-wevu__refresher-time"
+                  :style="refresherUpdateTimeStyle"
+                >
+                  {{ refresherUpdateTimeTitle }}{{ refresherUpdateTime }}
+                </text>
+              </slot>
             </view>
           </view>
 
@@ -1908,6 +2227,10 @@ onUnmounted(() => {
             :class="pagingContentClass"
             :style="[{ backgroundColor: bgColorContent }, pagingContentStyle]"
             @click="handleContentTouch"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+            @touchcancel="handleTouchEnd"
           >
             <view v-if="showLoading" class="z-paging-wevu__loading">
               <slot name="loading">
@@ -2217,6 +2540,13 @@ onUnmounted(() => {
   width: 100%;
   height: 1px;
 }
+.z-paging-wevu__body {
+  position: relative;
+  min-height: 100%;
+  will-change: transform;
+  transition-property: transform;
+  transition-timing-function: ease-out;
+}
 .z-paging-wevu__refresher,
 .z-paging-wevu__refresher-hint {
   display: flex;
@@ -2225,13 +2555,12 @@ onUnmounted(() => {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  transition-property: height;
-  transition-timing-function: ease-out;
 }
 /* 内层容器保持自定义刷新视图的自然高度，用于测量真实高度 */
 .z-paging-wevu__refresher-inner {
   display: flex;
   width: 100%;
+  flex-shrink: 0;
   flex-wrap: wrap;
   flex-direction: row;
   align-items: center;

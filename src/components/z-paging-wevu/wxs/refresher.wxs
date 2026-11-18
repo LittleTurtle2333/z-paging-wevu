@@ -1,0 +1,186 @@
+/*
+ * 自定义下拉刷新：WXS 在视图层直接位移整个下拉区域，逻辑层不参与逐帧 touchmove。
+ *
+ * 两条硬约束（踩过坑）：
+ * 1. WXS 不支持 try/catch：会被编译成对 nv_try 的调用并在运行时抛
+ *    `nv_try is not defined`，整个 touchmove/touchend 就此中断；
+ * 2. 不要依赖 Number/parseFloat 之类的全局函数，用 `* 1` 转数字最稳。
+ */
+
+function isTrue(value) {
+  return value === true || value === 'true' || value === 1 || value === '1'
+}
+
+function toNum(value, fallback) {
+  var n = value * 1
+  if (n !== n) {
+    return fallback
+  }
+  return n
+}
+
+function touchY(event) {
+  var touch = (event.touches && event.touches[0]) || (event.changedTouches && event.changedTouches[0])
+  if (!touch) {
+    return -1
+  }
+  return touch.clientY !== undefined ? touch.clientY : touch.pageY
+}
+
+function datasetOf(ownerInstance) {
+  var guard = ownerInstance.selectComponent('.z-paging-wevu__touch')
+  return guard ? guard.getDataset() : {}
+}
+
+/**
+ * 每次都重新取节点：页面 setData 之后旧节点引用会失效。
+ * WXS 的 touchend 可能收不到，松手后的回收由逻辑层通过 propObserver 下发指令。
+ */
+function bodyOf(ownerInstance) {
+  return ownerInstance.selectComponent('.z-paging-wevu__body')
+}
+
+/** 拖动时 transition 必须是 none，否则拖动会被过渡拖慢 */
+function applyTranslate(state, px, duration) {
+  var body = bodyOf(state.ownerInstance)
+  if (!body) {
+    return
+  }
+  state.moveDis = px
+  var style = { transition: duration > 0 ? 'transform ' + duration + 'ms ease' : 'none' }
+  style.transform = px === 0 ? 'none' : 'translate3d(0,' + px + 'px,0)'
+  body.setStyle(style)
+}
+
+/** 只在跨阈值时通知逻辑层，自定义插槽和二楼提示依赖真实状态。 */
+function updatePullStatus(state, status, height, dy) {
+  if (state.status === status) {
+    return
+  }
+  state.status = status
+  state.ownerInstance.callMethod('handleWxsPullStatus', {
+    ownerId: state.ownerId,
+    status: status,
+    height: height,
+    dy: dy,
+  })
+}
+
+/**
+ * setStyle 的优先级高于模板 style，逻辑层重新下发 transform 无法清除拖动位移。
+ * 刷新停留 / 完成收起也必须经由 WXS 写同一层样式。
+ * 指令格式为「位移:过渡时长:序号」，序号保证终点相同的连续手势仍触发观察器。
+ */
+function propObserver(value, oldValue, ownerInstance, instance) {
+  var parts = value ? value.split(':') : []
+  var state = ownerInstance.getState()
+  state.ownerInstance = ownerInstance
+  applyTranslate(state, toNum(parts[0], 0), toNum(parts[1], 0))
+}
+
+function reset(ownerInstance) {
+  var state = ownerInstance.getState()
+  state.active = false
+  state.startY = -1
+  state.status = 'default'
+  state.scrollLocked = false
+  state.pullingStarted = false
+}
+
+function touchstart(event, ownerInstance) {
+  var state = ownerInstance.getState()
+  var dataset = datasetOf(ownerInstance)
+  state.ownerInstance = ownerInstance
+  state.ownerId = dataset.ownerId
+  state.active = isTrue(dataset.enabled)
+  state.startY = -1
+  state.status = 'default'
+  state.scrollLocked = false
+  state.pullingStarted = false
+  state.moveDis = -1
+  if (!state.active) {
+    return true
+  }
+  state.threshold = toNum(dataset.threshold, 40)
+  state.rate = toNum(dataset.rate, 1)
+  state.outRate = toNum(dataset.outRate, 0.5)
+  state.f2Enabled = isTrue(dataset.f2Enabled)
+  state.f2Threshold = toNum(dataset.f2Threshold, 100)
+  state.startY = touchY(event)
+  return true
+}
+
+function touchmove(event, ownerInstance) {
+  var state = ownerInstance.getState()
+  var dataset = datasetOf(ownerInstance)
+  var y = touchY(event)
+  if (y < 0) {
+    return true
+  }
+  // 刷新资格只在 touchstart 判定。从中段滚到顶部时不能中途接管本次手势。
+  if (!state.active) {
+    return true
+  }
+  // 列表已经离开顶部（或进入刷新态）后，本次手势不再参与下拉。
+  if (!isTrue(dataset.enabled)) {
+    state.active = false
+    state.startY = -1
+    return true
+  }
+  if (state.startY < 0) {
+    state.startY = y
+    return true
+  }
+  var dy = y - state.startY
+  // 确认是下拉后保持锁定，这样中途往上推也不会把列表滚上去
+  if (dy > 5 && !state.scrollLocked) {
+    state.scrollLocked = true
+    state.pullingStarted = true
+  }
+  // 反向推过起点一段距离后结束本次下拉
+  if (dy < -10) {
+    // 尚未开始下拉时，这是正常上滑滚动；后续反向也不再接管。
+    if (!state.scrollLocked) {
+      state.active = false
+      state.startY = -1
+      return true
+    }
+    applyTranslate(state, 0, 0)
+    updatePullStatus(state, 'default', 0, dy)
+    return state.scrollLocked ? false : true
+  }
+  var height = 0
+  if (dy > 0) {
+    var raw = dy * state.rate
+    height = raw > state.threshold
+      ? state.threshold + (raw - state.threshold) * state.outRate
+      : raw
+  }
+  if (height < 0) {
+    height = 0
+  }
+  applyTranslate(state, height, 0)
+  var pulling = height >= state.threshold
+  var status = state.f2Enabled && height >= state.f2Threshold
+    ? 'go-f2'
+    : pulling ? 'release-to-refresh' : 'default'
+  updatePullStatus(state, status, height, dy)
+  // 已进入下拉手势时，整个手势都不再冒泡、也不再让 scroll-view 原生滚动
+  return state.scrollLocked ? false : (dy <= 0)
+}
+
+function touchend(event, ownerInstance) {
+  var state = ownerInstance.getState()
+  state.ownerInstance = ownerInstance
+  state.moveDis = -1
+  // 逻辑层通过 propObserver 决定回收位移还是停在刷新中高度。
+  reset(ownerInstance)
+  return true
+}
+
+module.exports = {
+  propObserver: propObserver,
+  touchstart: touchstart,
+  touchmove: touchmove,
+  touchend: touchend,
+}

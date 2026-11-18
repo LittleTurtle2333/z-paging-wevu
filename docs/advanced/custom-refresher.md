@@ -1,24 +1,12 @@
-# 自定义下拉刷新与二楼
+# 下拉刷新与二楼
 
-## 内置刷新（推荐）
+## scroll-view 模式：默认就是 WXS 下拉刷新
 
-默认使用 `scroll-view` 原生 refresher，下拉位移由视图层提供，跟手性最好：
-
-```vue
-<ZPagingWevu
-  :fixed="true"
-  :refresher-enabled="true"
-  :refresher-threshold="40"
-  @refresher-status-change="onStatusChange"
-/>
-```
-
-原生模式下微信只绘制自己的指示器，`refresher-default-text` 等文案不会生效。需要「继续下拉刷新 / 松开立即刷新 / 正在刷新...」这类文案时，把 `refresher-default-style` 设为 `none`：
+`scroll-view` 模式下默认使用组件自带的下拉刷新，位移由 WXS 在视图层直接写，不经过 `setData`：
 
 ```vue
 <ZPagingWevu
   :refresher-threshold="48"
-  refresher-default-style="none"
   refresher-default-text="继续下拉刷新"
   refresher-pulling-text="松开立即刷新"
   refresher-refreshing-text="正在刷新..."
@@ -26,19 +14,23 @@
 />
 ```
 
-此时组件关闭微信默认刷新区域，改为在内容顶部自绘一条与 `refresher-threshold` 等高的文案层，由原生下拉位移带出：位移不经过 `setData`，与手指 1:1 跟手，下拉过程中也不会推出超过阈值高度的空白。状态切换通过 `bindrefresherpulling` 的 `dy` 判定，刷新结束后自动复位。
+不再使用 `scroll-view` 原生 refresher 的原因：原生模式下「下拉后不松手往回推」会连带把列表滚上去，
+这一段滚动由原生接管，逻辑层和 WXS 都拦不住。自己接管手势（`touchmove` 返回 `false`）才能锁住列表。
 
-需要「刷新成功」完成态时设置 `refresher-complete-delay`（大于 0，例如 `600`）：该模式下组件会在延迟期间保持 `refresher-triggered`，展示完成图标与 `refresher-complete-text` 后再收起原生刷新区域。
+行为说明：
 
-页面滚动模式下，原生页面下拉刷新需要通过页面生命周期调用 `paging.reload()`。
+- 刷新区高度取 `refresher-threshold`；使用自定义插槽时取实测自然高度（不低于该值）
+- 拖动阶段位移不设上限，超过阈值后按 `refresher-out-rate` 阻尼继续增长，和原版一致可以一直往下拉
+- 刷新态撑到刷新区完整高度；完成后先保持 `refresher-complete-delay` 展示完成态，再用 `refresher-complete-duration` 收起
+- `use-custom-refresher` 现在是兼容字段（`scroll-view` 模式下恒启用）；页面滚动模式、`layout-only`、聊天记录模式不受影响
+- PC 微信（Mac / Windows）没有手指下拉手势，原生 refresher 用鼠标触发不了，同样走这条路
 
-## 自定义刷新
+## 完全自绘刷新视图
 
 ```vue
 <ZPagingWevu
   v-model="items"
   :controller="paging"
-  :fixed="true"
   use-custom-refresher
   :refresher-threshold="80"
   :refresher-complete-duration="300"
@@ -51,23 +43,23 @@
 </ZPagingWevu>
 ```
 
-该模式在逻辑层按 `refresherPullRate` / `refresherOutRate` 逐帧计算高度，高频拖动时会落后于手指，且高度随拖拽持续增长。仅在需要完全自绘（二楼、图片、非矩形刷新区）时使用。
+插槽里可以拿到实时状态：`default` / `release-to-refresh` / `loading` / `complete` / `go-f2`。
 
-几点实现约定：
+## 实现约定
 
-- 刷新区高度在挂载后会实测自定义视图的自然高度：拖动阶段上限取「视图高度 / 二楼阈值 + 阈值」二者较大值，刷新态直接撑到视图高度，避免自定义内容被裁成一条。
-- 拖动阶段不加高度过渡（保证跟手）；`loading` / `complete` 阶段才有动画。
-- 刷新完成后先保持 `complete` 展示 `refresher-complete-delay`，再用 `refresher-complete-duration` 缓慢收起。
-
-状态包括：
-
-- `default`：默认或继续下拉。
-- `release-to-refresh`：松开即可刷新。
-- `loading`：正在刷新。
-- `complete`：刷新完成。
-- `go-f2`：已达到进入二楼阈值。
-
-启用 `watch-refresher-touchmove` 后，可监听触摸过程中的距离和视图高度。
+- **位移**：WXS 直接 `setStyle` 写 `.z-paging-wevu__body` 的 `transform`。松手后的回收或停留在刷新中高度，
+  由逻辑层通过属性观察器下发 `位移:过渡时长:序号` 指令，仍然由 WXS 写同一层样式
+  （`setStyle` 的优先级高于模板 style，逻辑层直接改 style 清不掉 WXS 写的位移）。
+- **状态**：跨阈值时 WXS 通过 `callMethod('handleWxsPullStatus')` 通知逻辑层，按实例 id 路由
+  （一个页面有多个分页组件时互不干扰），用来驱动内置文案、自定义插槽、二楼提示、震动与 `refresher-touchmove`。
+- **滚动锁**：确认是下拉手势后 `touchmove` 返回 `false`，整个手势不再冒泡、也不再让 `scroll-view` 原生滚动；
+  同时把 `scroll-y` 置为 `false` 兜底。
+- **WXS 语法限制**（踩过坑，务必遵守）：
+  - **不能用 `try/catch`**：会被编译成对 `nv_try` 的调用，运行时抛 `nv_try is not defined`，整个 handler 中断
+  - 不要用 `Number()` / `parseFloat()`，用 `value * 1` 转数字
+  - 不支持 `let/const`、箭头函数、模板字符串、可选链
+  - 页面 `setData` 之后 WXS 里缓存的节点引用会失效，每次写 style 前重新 `selectComponent`
+- **页面滚动模式**：手势由逻辑层按 `refresher-fps`（默认 40）节流处理，原生页面下拉刷新需要通过页面生命周期调用 `paging.reload()`。
 
 ## 二楼 F2
 

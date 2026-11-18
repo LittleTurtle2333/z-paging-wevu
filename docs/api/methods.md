@@ -113,9 +113,9 @@ paging.setLocale('en')
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
 | `getVersion` | `() => string` | 返回兼容实现版本标识 |
-| `setListSpecialEffects` | `(value: unknown) => void` | nvue 兼容空操作 |
-| `setSpecialEffects` | `(value: unknown) => void` | nvue 兼容空操作 |
+| `setListSpecialEffects` | `(value: unknown) => void` | 迁移兼容空方法，无效果 |
+| `setSpecialEffects` | `(value: unknown) => void` | 迁移兼容空方法，无效果 |
 
 ::: warning
-两个 `set*SpecialEffects` 方法不实现 nvue 特效，只为迁移时保留调用入口。
+两个 `set*SpecialEffects` 方法在小程序里没有对应实现，只为迁移时保留调用入口，调用不会产生任何效果。
 :::

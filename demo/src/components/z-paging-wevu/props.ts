@@ -96,7 +96,13 @@ export interface ZPagingWevuProps {
   refresherEnabled?: boolean
   /** 触发下拉刷新的距离，单位为 px。@defaultValue 40 */
   refresherThreshold?: number | string
-  /** 是否使用自定义下拉刷新。@defaultValue false */
+  /**
+   * 是否使用自定义下拉刷新。
+   *
+   * scroll-view 模式下现在恒为自定义实现（WXS 接管手势）：原生 refresher 的
+   * 下拉/回推由原生滚动接管，松手前无法锁住列表。该字段保留为 API 兼容。
+   * @defaultValue false
+   */
   useCustomRefresher?: boolean
   /** 调用 `reload` 时是否显示下拉刷新动画。@defaultValue false */
   showRefresherWhenReload?: boolean
@@ -165,8 +171,8 @@ export interface ZPagingWevuProps {
   /** 下拉刷新区域背景色。@defaultValue undefined */
   refresherBackground?: string
   /**
-   * 原生下拉刷新指示器样式，仅原生模式（未开启 `useCustomRefresher`）生效。
-   * 设为 `none` 时关闭微信默认刷新区域，改由组件自绘文案层，位移仍由原生提供，保持跟手。
+   * 原生下拉刷新指示器样式，仅在页面滚动模式（`usePageScroll`）下生效。
+   * scroll-view 模式统一使用组件内置刷新视图，配色请用 `refresherThemeStyle`。
    * @defaultValue 'black'
    */
   refresherDefaultStyle?: 'black' | 'white' | 'none'

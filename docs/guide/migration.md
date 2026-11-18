@@ -82,4 +82,4 @@
 
 ## 不支持项
 
-不要依据官方 nvue 文档推断本项目支持 WXS、renderjs 或 nvue 专属特效。`setListSpecialEffects` 和 `setSpecialEffects` 仅保留无操作兼容入口。
+原版文档中的 H5、App、nvue 章节在这里不适用：本项目是微信小程序组件，没有这些平台产物，也没有 nvue 专属特效。`setListSpecialEffects` 和 `setSpecialEffects` 只为迁移保留成空方法，调用不会产生效果。

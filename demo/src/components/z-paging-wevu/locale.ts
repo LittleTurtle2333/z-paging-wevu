@@ -48,7 +48,7 @@ const MESSAGES: Record<ZPagingWevuLocale, Record<string, string>> = {
     'zp.emptyView.error': '很抱歉，載入失敗',
     'zp.system.loading': '載入中...',
   },
-  en: {
+  'en': {
     'zp.refresher.default': 'Pull down to refresh',
     'zp.refresher.pulling': 'Release to refresh',
     'zp.refresher.refreshing': 'Refreshing...',

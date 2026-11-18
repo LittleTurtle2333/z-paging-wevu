@@ -52,7 +52,7 @@ import ZPagingCell from 'z-paging-wevu/cell'
 | `controller` | `ZPagingWevuController` | 内部创建 | 可选外部分页控制器 |
 | `useVirtualList` | `boolean` | `false` | 虚拟列表兼容配置；当前不重复实现主组件虚拟窗口 |
 | `useInnerList` | `boolean` | `false` | 通过 `#cell` 渲染内部列表 |
-| `cellKeyName` | `string` | `''` | nvue 兼容字段，当前无实际作用 |
+| `cellKeyName` | `string` | `''` | 与原版 API 对齐保留，当前无实际作用 |
 | `innerListStyle` | `object` | `{}` | 内置列表样式兼容配置 |
 | `preloadPage` | `number \| string` | `12` | 预加载兼容配置 |
 | `cellHeightMode` | `'fixed' \| 'dynamic'` | `'fixed'` | cell 高度兼容配置 |
@@ -108,7 +108,7 @@ import ZPagingCell from 'z-paging-wevu/cell'
 
 ## ZPagingCell
 
-非 nvue 环境的 `view` 包装，用于统一列表 cell 与触摸事件。
+用 `view` 包装列表 cell，统一 cell 结构与触摸事件。
 
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
@@ -125,4 +125,4 @@ import ZPagingCell from 'z-paging-wevu/cell'
 </ZPagingCell>
 ```
 
-nvue 的原生 `<cell>` 分支不在当前实现范围内。
+原版面向 nvue 的原生 `<cell>` 分支没有对应实现，这里始终是 `view` 包装。

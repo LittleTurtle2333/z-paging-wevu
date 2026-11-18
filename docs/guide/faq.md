@@ -63,6 +63,24 @@ transform: scaleY(-1);
 
 `withDefaults` 的默认值对象被移出了 SFC。把默认值字面量移回组件 `index.vue`，props 类型仍可放在 `props.ts`。
 
-## 是否支持 nvue
+## 下拉后不松手往回推，列表会跟着动
 
-不支持 nvue 专属渲染。相关方法只用于减少迁移时的调用错误，不代表功能已经实现。
+已经修掉了。`scroll-view` 模式改为组件自己接管手势：确认是下拉手势后 `touchmove` 返回 `false`，
+整个手势不再冒泡、也不会让 `scroll-view` 原生滚动，因此在松手前列表是锁死的。
+不再使用 `scroll-view` 原生 refresher，正是因为那一段回推由原生接管、逻辑层拦不住。
+细节见[下拉刷新与二楼](../advanced/custom-refresher)。
+
+## 自定义下拉刷新的文案/位移不跟随手指变化
+
+这类问题基本都出在 WXS 里用了不支持的语法，最常见的是 `try/catch`：
+它会被编译成对 `nv_try` 的调用并在运行时抛 `nv_try is not defined`，整个 `touchmove` / `touchend` 直接中断，
+表现为「能拉动，但文案不切换、松手也不回弹」。控制台如果出现 `nv_* is not defined`，
+就是 WXS 里还有不支持的写法。约束清单见[下拉刷新与二楼](../advanced/custom-refresher)。
+
+## PC 微信（Mac / Windows）里下拉刷新没反应
+
+PC 端没有手指下拉手势，`scroll-view` 的原生 refresher 用鼠标拖拽不会触发。组件检测到平台为 `mac` / `windows` 时会自动回退到自定义刷新，鼠标拖拽即可触发；真机与开发者工具模拟器（`platform` 为 `devtools`）不受影响。如果 PC 端不需要刷新，设置 `refresher-enabled="false"` 即可。
+
+## 是否支持 nvue、App 或 H5
+
+不适用。本项目是微信小程序组件，不是 uni-app 项目，只有小程序这一个平台；原版文档中的 nvue、App、H5 能力在这里没有对应实现。`setListSpecialEffects`、`setSpecialEffects` 只为减少迁移时的调用错误保留为空方法，调用不会产生任何效果。

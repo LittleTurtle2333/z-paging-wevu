@@ -132,7 +132,7 @@ defineExpose({ reload, complete })
     <slot name="header" />
     <slot />
     <template v-if="useInnerList">
-      <slot name="cell" v-for="(item, index) in list" :item="item" :index="index" />
+      <slot v-for="(item, index) in list" name="cell" :item="item" :index="index" />
     </template>
     <slot name="footer" />
   </scroll-view>
