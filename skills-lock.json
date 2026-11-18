@@ -1,0 +1,131 @@
+{
+  "version": 2,
+  "skills": {
+    "docs-and-website-sync": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/docs-and-website-sync/SKILL.md",
+      "computedHash": "a7f8ace97173e41068b0125054bf38bec00c2d1ec4d1a35a0290b474b9bee285"
+    },
+    "native-to-weapp-vite-wevu-migration": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/native-to-weapp-vite-wevu-migration/SKILL.md",
+      "computedHash": "6aa279f5073c76194f219e2595f0bdc7c7b12fa1ad99c6d32330bbc8f6c5ce98"
+    },
+    "playwright-cli": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/playwright-cli/playwright-cli/SKILL.md",
+      "computedHash": "d3c50339092b670cdda1ba2bed0bdee1c34247cdf70df475e8b7d83983a39e79"
+    },
+    "release-and-changeset-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/release-and-changeset-best-practices/SKILL.md",
+      "computedHash": "4ffb1db6fba1ddf4ea458041ead5dc539374eac672d442d028c2f72da814d6c4"
+    },
+    "weapp-acceptance": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/weapp-acceptance/SKILL.md",
+      "computedHash": "f07bef722bb887cbcf5450490ef51df664f79fc3b8050f439b8f8ab27e447adf"
+    },
+    "weapp-devtools-e2e-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/weapp-devtools-e2e-best-practices/SKILL.md",
+      "computedHash": "7716dbb60d0646afaaa03f76d5d48106f5ff542036a2b059a9c48532a231f5ce"
+    },
+    "weapp-tailwindcss": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss/SKILL.md",
+      "computedHash": "4c4a2ca1c9adde32739e45d056df683f1070da0018a7d84aa7f2315e4887f33d"
+    },
+    "weapp-tailwindcss-custom-build": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-custom-build/SKILL.md",
+      "computedHash": "6c46c41808202be12e9dda9ea329bf2609142e06783cea79d0c5cbbc25e3bbbf"
+    },
+    "weapp-tailwindcss-lynx": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-lynx/SKILL.md",
+      "computedHash": "13c41bded2b81a730a35673205fc1679fe0a87102fe2a7de6c3cf68891002c18"
+    },
+    "weapp-tailwindcss-migrate": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-migrate/SKILL.md",
+      "computedHash": "b35f3f09936c9366be74a9eda3acb131e9c9124db27d8e09adfa2a7a1a422636"
+    },
+    "weapp-tailwindcss-react-native": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-react-native/SKILL.md",
+      "computedHash": "f659a9149efe4df97bc99ed0f17e7c5c7d4b11f86b39ae3801d7b9c9f5c893ec"
+    },
+    "weapp-tailwindcss-runtime": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-runtime/SKILL.md",
+      "computedHash": "45699febb94520035abc2fdd3ab16759f788d10898787dfe2883aef011609b05"
+    },
+    "weapp-tailwindcss-setup": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-setup/SKILL.md",
+      "computedHash": "d00f756f7417335b84a0881f8729bb51d3bf0803d4e10c4722842fc0b1d1421e"
+    },
+    "weapp-tailwindcss-troubleshoot": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-tailwindcss/weapp-tailwindcss-troubleshoot/SKILL.md",
+      "computedHash": "890bb8660b434af57c08e407d03fc7e8f0f05d624bf90f1cfab8cb63ce68eeb0"
+    },
+    "weapp-vite-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/weapp-vite-best-practices/SKILL.md",
+      "computedHash": "40529e4be00af10e6a7b553c3a38a674a07a59b791ed0886861b8df2ef6807c1"
+    },
+    "weapp-vite-react-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/weapp-vite-react-best-practices/SKILL.md",
+      "computedHash": "972e1803e2e0fd9e5e3fb69f7c16c645da77e8b9bddd216266f7dacd28fdbb2c"
+    },
+    "weapp-vite-vue-sfc-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/weapp-vite-vue-sfc-best-practices/SKILL.md",
+      "computedHash": "20666429689b88b0303adcce350f9f1b258fd531c6616a0da386cd25bd2a2553"
+    },
+    "wevu-best-practices": {
+      "source": "sonofmagic/skills",
+      "commit": "ee8599bbf7f650e4e6218913175916a0c6dae6a7",
+      "sourceType": "github",
+      "skillPath": "skills/weapp-vite/wevu-best-practices/SKILL.md",
+      "computedHash": "20502f9c87cdd48ec8b239c52ca7b9877fd99a4e3fbc2175462cea4b88481d9f"
+    }
+  }
+}

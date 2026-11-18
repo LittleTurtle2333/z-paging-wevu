@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Wevu Best Practices'
+  short_description: 'Wevu 生命周期、响应式、JSX、路由与运行时性能'
+  default_prompt: 'Use $wevu-best-practices to implement or debug Wevu-owned JSX, lifecycle, reactivity, events, stores, routing, layout, and runtime performance rather than a React-owned component bridge.'
+
+policy:
+  allow_implicit_invocation: true

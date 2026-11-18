@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Weapp-vite Vue SFC Best Practices'
+  short_description: 'Vue SFC 宏、JSX/TSX、模板兼容与受管类型'
+  default_prompt: 'Use $weapp-vite-vue-sfc-best-practices to implement or debug Vue SFC macros, Wevu-owned JSX or TSX boundaries, template compatibility, and managed type outputs in a weapp-vite project.'
+
+policy:
+  allow_implicit_invocation: true

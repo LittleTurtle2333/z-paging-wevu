@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Weapp-vite Best Practices'
+  short_description: '工程配置、CLI、多平台、HMR、构建与性能治理实践'
+  default_prompt: 'Use $weapp-vite-best-practices to diagnose and implement weapp-vite configuration, build, CLI, multi-platform, HMR, package, and AI workflow changes.'
+
+policy:
+  allow_implicit_invocation: true

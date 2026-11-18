@@ -88,7 +88,7 @@ for (const file of [...walk(DIST, '.js'), ...walk(DIST, '.wxml')]) {
   const source = fs.readFileSync(file, 'utf8')
   const rel = path.relative(DIST, file)
 
-  if (/(^|[^.\w])uni\.\w/.test(source)) {
+  if (/(?:^|[^.\w])uni\.\w/.test(source)) {
     problems.push(`${rel}: 残留 uni.* 调用`)
   }
   if (/#(?:ifdef|ifndef|endif)/.test(source)) {

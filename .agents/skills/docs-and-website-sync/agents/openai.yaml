@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Docs And Website Sync'
+  short_description: '根据源码同步文档、网站、Skills 与 AI 公开入口'
+  default_prompt: 'Use $docs-and-website-sync to align website, docs, public skills, generated assets, and scaffolded AI guidance with the current repository implementation.'
+
+policy:
+  allow_implicit_invocation: true

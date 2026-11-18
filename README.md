@@ -2,7 +2,7 @@
 
 面向 **weapp-vite + wevu + Vue SFC** 的 z-paging 兼容实现。保留 z-paging 的分页心智模型，同时针对微信小程序运行时处理事件参数、虚拟列表和布局差异。
 
-> 当前版本为 0.2.0，目标是微信小程序；nvue 专属渲染仅保留兼容入口。
+> 当前版本为 0.3.0，只支持微信小程序（weapp-vite + wevu + Vue SFC）。这是独立的微信小程序组件，不是 uni-app 组件；原版 z-paging 文档中的 H5、App、nvue 内容在这里没有对应实现，`setListSpecialEffects`、`setSpecialEffects` 也只为迁移保留空方法。
 
 ## 能力
 
@@ -12,6 +12,7 @@
 - 页面滚动、整屏 `scroll-view`、顶部/底部/左右插槽
 - 固定和动态高度虚拟列表、聊天记录模式、键盘适配
 - 原生下拉刷新 + 自绘文案层（`refresher-default-style="none"`）：位移由视图层提供，与手指 1:1 跟手
+- PC 微信（Mac / Windows）没有下拉手势，原生 refresher 用鼠标触发不了，组件会自动回退到自定义刷新
 - 自定义下拉刷新、二楼 F2、返回顶部、国际化文本
 - TypeScript 类型与 `createPagingController()` 控制器
 - `ZPagingSwiper` / `ZPagingSwiperItem` / `ZPagingEmptyView` / `ZPagingCell` 公用子组件
@@ -75,6 +76,50 @@ async function queryList([pageNo, pageSize]: [number, number, string]) {
 ```
 
 **注意：** wevu 自定义组件的多参数事件会合并为数组，因此 `@query` 的参数是一个数组。请求结束后必须调用 `complete` 系列方法；刷新列表使用 `reload()`，不要手动调用内部查询流程。
+
+## 本地开发
+
+```bash
+pnpm install
+
+pnpm lint        # ESLint（内置 weapp-vite / wevu 小程序规则集）
+pnpm typecheck   # vue-tsc
+pnpm test        # Vitest：组件逻辑单测 + WXS/刷新时序回归（约 90 例）
+pnpm test:watch  # 监听模式
+pnpm test:e2e    # 产物级 e2e：构建 demo 后用 mpcore headless 运行时断言真实小程序产物
+pnpm test:e2e:devtools # 真实微信开发者工具 e2e：验证点击、请求、数据加载（需已登录 + 开启服务端口）
+pnpm check:package # publint 校验 exports / types 是否能被消费者解析
+```
+
+`test:e2e:devtools` 使用 `@weapp-vite/miniprogram-automator` 驱动本机微信开发者工具，前置条件：
+
+1. 已安装并登录微信开发者工具
+2. 「设置 → 安全设置 → 服务端口」已开启
+3. 提供真实 appid：在项目根 `.env.local`（已被 gitignore）写入
+   `WEAPP_DEVTOOLS_APPID=wx...`，或用环境变量临时传入
+   （仓库默认的 `touristappid` 会被 DevTools 自动化接口以 `APPID_ERROR` 拒绝；
+   在开发者工具里「项目 → 测试号」可获取一个无需注册小程序的测试 appid）
+4. 关闭已打开的 demo 项目窗口，避免与自动化启动冲突
+5. CLI 路径不是 macOS 默认值时，用 `WEAPP_DEVTOOLS_CLI=/path/to/cli` 覆盖
+
+脚本会临时把 appid 写入 `demo/project.config.json`，测试结束自动恢复，不会污染仓库。
+
+发布流程使用 Changesets：
+
+```bash
+pnpm changeset   # 描述本次改动并选择版本类型
+pnpm version     # 汇总 CHANGELOG 与版本号
+pnpm release     # 门禁通过后发布到 npm
+```
+
+`pnpm build` 会依次执行 lint、类型检查、测试与文档构建。演示小程序单独运行：
+
+```bash
+pnpm demo:dev    # 同步组件源码后启动 weapp-vite dev
+pnpm demo:build  # 生产构建 + 产物校验
+```
+
+`demo/src/**` 是从 uni-z-paging 移植的演示代码，保留原有 Tab 缩进，不纳入 lint 门禁；其中 `demo/src/components/z-paging-*` 由同步脚本从仓库根 `src/` 生成，不要手改。
 
 ## 文档
 

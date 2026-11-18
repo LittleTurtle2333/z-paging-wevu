@@ -1,0 +1,173 @@
+---
+name: weapp-vite-best-practices
+description: 面向采用 weapp-vite 项目布局仓库或已安装 `weapp-vite` 依赖项目的工程化实践手册，覆盖 `vite.config.ts` 的 `weapp` 配置、内置 i18n、自动路由、routeRules/layout、buildScope、自动导入组件、分包、npm、六平台单目标构建、受管 TypeScript、HMR、sourcemap、`prepare`、MCP、Web runtime、lib mode、worker、AI skills，以及与 `weapp-ide-cli` 的命令治理边界。
+---
+
+# weapp-vite-best-practices
+
+## 用途
+
+用稳定默认值先把 weapp-vite 项目跑顺，再按目标逐步接入分包、AI、Web runtime、库模式和性能优化。
+
+## 包与资料边界
+
+- 本 skill 随 `weapp-vite` 提供；原生小程序构建、配置、CLI 与 SFC 编译由该包负责，不要求克隆框架仓库或安装其他 skill。
+- 本文 `references/` 路径相对本 skill；包文档统一从项目的 `node_modules/weapp-vite/dist/docs/` 读取。项目已有 `AGENTS.md` 时遵循它，不把生成该文件作为使用前提。
+- Wevu 运行时、响应式、生命周期、事件、store 和 router 需要项目显式依赖 `wevu`；React runtime/bridge 需要 `@weapp-vite/react` 及其 peer dependencies。仅安装 `weapp-vite` 不代表这些运行时可用。
+- Web 目标由 `weapp-vite` 的 Web 构建链提供；第三方 UI 库、`@mpcore/*` 测试工具和各平台上传 SDK 是按任务选用的额外依赖。使用前确认对应包已安装，不为普通构建默认添加。
+- 下列其他 skill 仅是已安装时的可选分流，不是本 skill 的必读依赖；原生迁移也可按业务模块逐步接入，不依赖额外迁移 skill。
+
+## 何时使用
+
+- 用户要配置 `vite.config.ts` 里的 `weapp`。
+- 用户要排查输出缺页、路径不对、自动路由不生效、layout 不生效。
+- 用户要接入分包、npm 落位、多平台、worker、web runtime、lib mode。
+- 用户要处理支付宝 `.axml/.acss`、抖音 `.ttml/.ttss`、`buildScope`、sourcemap 或自动 HMR 模式选择。
+- 用户要用 Vitest 对真实小程序编译产物进行页面或组件测试。
+- 用户要让 AI 正确使用项目，包括 `AGENTS.md`、`dist/docs`、screenshot / compare / logs / mcp。
+- 用户要梳理 `weapp-vite` 与 `weapp-ide-cli` 的命令归属、六端构建上传与 `ide upload/preview/open/config` 等 IDE 能力边界。
+
+## 不适用场景
+
+本 skill 聚焦项目级架构、CLI 所有权、构建编排和 AI 工作流对齐。
+
+- `.vue` 宏和模板兼容：使用 `weapp-vite-vue-sfc-best-practices`。
+- `wevu` 生命周期、状态和事件：使用 `wevu-best-practices`。
+- 原生迁移：使用 `native-to-weapp-vite-wevu-migration`。
+- React 19 JSX/TSX、render mode 和组件 bridge：使用 `weapp-vite-react-best-practices`。
+
+## 核心流程
+
+1. 先确定是只读诊断还是实施、允许写入范围与目标平台，再收集相关输入：`vite.config.ts`、`app.json` / `app.json.ts`、页面/组件/分包目录、消费项目的 package scripts、已有 `AGENTS.md` 和 `node_modules/weapp-vite/dist/docs/`。记录已安装 `weapp-vite`、相关 runtime、Node、包管理器与构建宿主的实际版本，不把依赖范围当安装版本；涉及运行时再记录实际 IDE、基础库和 renderer，未取得的版本明确缺失。
+   按本次问题选入口，不为普通页面任务展开全部能力：
+   - 页面/路由/输出：从源目录、手工 `pages/subPackages` 或 `autoRoutes` 分支进入 `references/config-playbook.md`、`references/debug-playbook.md`；先确认路由所有者并解释遗漏原因。已有手工清单时优先最小登记，保留首页与条目顺序，不为补页切换路由模式；已采用自动发现时再查扫描和排除配置。检查目标 app JSON、页面配套产物与路径；实际可导航另需目标宿主观察。
+   - 构建/平台/类型：从项目 scripts、目标平台配置与已安装工具链进入下列基础配置和 `prepare` 步骤；一次只选一个目标。工具或配置缺失时停下依赖它的检查，输出具体缺口；检查目标扩展名、输出根与受管声明，不把声明生成当运行成功。
+   - 分包/体积/HMR：先给出相同输入的产物或 profile，再进入分包分析或 `references/stateful-hmr-playbook.md`；没有基线先测量，不先改 chunk。输出实际体积、更新行为及同场景对比；插件任务另查双产物。
+   - IDE/AI/上传：从具体操作、已安装 CLI、宿主状态和授权进入 `references/cli-dispatch-playbook.md`、`references/ide-command-playbook.md`；缺凭据或授权停止对应外部动作。检查实际退出码、日志、截图或官方回执，不把 dry-run 当上传或发布成功。
+2. 区分顶层 Vite 字段和小程序专属 `weapp.*`，先理顺基础项：
+   - `weapp.srcRoot`
+   - `weapp.platform`
+   - `weapp.multiPlatform`：多端推荐 `projectConfigs` 平台映射，公共字段用对象展开；未写 `targets` 时从映射键推导。无需手工维护六份 JSON，构建器在代码输出目录内原生生成标准项目文件，代码根固定为 `.`。输入不写代码根字段，目录用 `build.outDir`；原生文件方式仍用 `projectConfigRoot`，不能与映射混用。AppID 可在外层配置函数按 mode 读取，Token/私钥不进入映射。
+   - 多平台始终单目标构建；显式选择微信、支付宝、抖音、百度、京东、小红书或 Web，不把一次构建描述成同时产出全部平台
+   - `weapp.autoRoutes`
+   - `weapp.autoImportComponents`
+   - `weapp.i18n`：基于 `@weapp-vite/i18n` 的微信平台 locale JSON 编译与运行时切换；`defaultLocale` 必填，默认扫描 `**/i18n/*.json`
+   - `weapp.uniApp`：实验性外部 uni-app Vue SFC 转换；npm 包必须显式加入 `include` 白名单
+   - `weapp.routeRules`
+   - `weapp.styles`：生成主包独立样式入口并按规则注入主包与普通分包；默认不修改 `app.wxss`，显式 `include: 'app.vue'` 时可注入，也不跨入独立分包
+   - `weapp.buildScope` / `wv dev|build --scope`：限定页面或分包构建时保持 autoRoutes 的主包/分包归属
+   - `weapp.typescript`
+   - `weapp.hmr.runtime`：显式配置优先；未配置时结合工作区 `compileHotReLoad` 选择 classic 或实验性 stateful 模式；实际 bundle 含 Skyline renderer 时强制关闭 DevTools 热重载并降级 classic
+   - `weapp.vue.template.slotFallbackWrapperStrategy`：微信平台默认使用内部 `virtualHost` 组件承载转发 `<slot />` 的具名插槽 fallback；需要旧版真实节点行为时显式设为 `view`
+   - `weapp.vue.template.slotFallbackWrapper`：普通具名插槽 fallback 的真实 wrapper，可用全局默认、按模板标签名 `component`、子组件静态 `defineOptions({ name })` 的 `componentName`、slot 规则和组件内 `slot-wrapper` / `slot-wrapper-footer` / `slot-wrapper-class` / `slot-wrapper-footer-class` 静态覆盖；显式配置后优先于默认策略；不要把 `block` 当作转发 `<slot />` 的 wrapper
+3. 按目标启用能力：
+   - 项目检查：`wv doctor` 默认只读 JSON/源码；`--build` 与 `--runtime` 显式选择构建/已打开宿主。JSON/SARIF 保留分层覆盖，退出码 2 表示 incomplete，不能当作通过；宿主页面探针不能替代功能 E2E。
+   - AI / 调试：`weapp.forwardConsole`、`weapp.mcp`、`wv mcp init|print|doctor`、`wv screenshot`、`wv compare`、`wv ide logs --open`
+   - 产物与结构：`subPackages`、`npm`、`chunks`、`worker`、`weapp.analyze.budgets` / `history`
+   - 进阶链路：`web`、`lib`
+   - 页面/组件单测：`@mpcore/weapp-vite` 构建产物，`@mpcore/test` 提供 render/query/user，`@mpcore/vitest` 提供每测试隔离和 matcher
+   - i18n：通过 `import { i18n } from 'weapp-vite/i18n'` 获取构建实例；Native Component 与 Component Page 使用 `behaviors: [i18n.behavior]`，传统 `Page({...})` 使用 `i18n.page(options)`；主包与普通分包共享实例，独立分包从默认语言创建实例；无 Vite 原生项目直接使用 `@weapp-vite/i18n`
+   - React 项目：这里只判断项目级 `weapp.react` 和构建所有权，TSX/runtime/bridge 细节转交 `weapp-vite-react-best-practices`
+4. CLI 与 IDE 所有权保持清晰：
+   - `weapp-vite` 原生命令通常优先；明确保留旧顶层微信 IDE `upload` 与 `help upload` 的兼容例外
+   - `weapp-ide-cli` 只在 catalog 命中后透传
+   - 原生命令包含 `dev` / `serve` / `build` / `upload` / `preview` / `close` / `analyze` / `init` / `open` / `npm` / `generate` / `prepare` / `mcp`
+   - `analyze` 支持 `--json`、`--markdown`、`--report pr`、`--budget-check`、`--hmr-profile`、`--preload`、`--glass-easel-check`；分包预算来自 `weapp.analyze.budgets`，增量归因来自 `weapp.analyze.history`，预下载审计按触发包汇总实际分包体积与共享的 2 MB 额度
+   - `wv build --upload -p <平台>` 复用本次构建并在产物校验通过后上传；普通 build/dev/HMR 不启用上传。`weapp.upload` 仅提供版本和说明，AppID 与凭据配置先读 `node_modules/weapp-vite/dist/docs/upload.md` 及[分平台上传指南](https://vite.weapp.dev/guide/upload.html)，不要把支付宝当作淘宝支持。
+   - SDK `wv upload/preview -p <weapp|alipay|tt|xhs|jd|swan>` 自行构建后调用按需安装的官方工具；多目标用逗号分隔或显式 `all`，与 `build -p all` 的“小程序 + Web”含义不同。`--dry-run` 不调用 SDK；upload 只上传开发版本，preview 只生成官方预览结果，均不提审、不正式上线。顶层 preview 不在旧语法兼容范围内，IDE 预览用 `wv ide preview`。
+   - 独立 `upload --json` 的 stdout 只输出单个结构化汇总，日志与官方进度进入 stderr；批量遇错停止，保留前序成功及后续 `not-run`。`--timeout <秒>` 仅限制各平台 SDK worker，不含构建；SDK 开始后超时／中断标记远端结果未确认，不等于远端取消，禁止自动重试。结果字段只取官方实际返回信息，不推断版本或统一百分比。这两个选项不用于 `build --upload`、`preview`、IDE 或 `weapp.upload` 配置。
+   - 旧顶层 `wv upload --project ./dist --version 1.2.3 --desc "release"` 与 `wv upload -p ./dist -v 1.2.3 -d "release"` 保留原始参数、IDE 分发及退出行为，不额外触发构建；每次仅警告一次未来移除。显式 `wv ide upload` 不弃用、不警告，不能把原生所有权断言写成“所有 upload 都禁止 IDE 分发”。
+   - 分流只依据明确方言标记：旧 `--version/-v`、`--project`、`--appid`、`--ext-appid`、`--info-output/-i`；SDK 长参数 `--platform`、`--uv`、`--bump`、`--git-desc`、`--dry-run`、`--json`、`--timeout`。混用在 IDE、编译、版本修改前报错，SDK 的 `--no-*` 形式也参与判断；不允许 SDK 专属选项在 IDE 调用中静默忽略。
+   - `-p` 有旧标记时是 IDE 项目目录，否则是平台，不看目录是否存在或值是否像平台名。`--desc` 共用；`-d` 仅在旧调用中为说明，原生仍为 debug。选项值只是数据，支持分开及 `=` 形式，在 `--` 处停止分流扫描。
+   - SDK 迁移从源码项目根安装官方 SDK，配置 AppID 与 SDK 上传凭据后使用 `wv build --upload -p weapp --uv 1.2.3 --desc "release"`，不能把旧 `--project` 产物目录直接当作 SDK root，也不复用 IDE 登录。dry-run、`--bump`、`--git-desc`、`--json`、`--timeout` 只属于 SDK；保留原行为用稳定的 `wv ide upload`。
+   - `ide preview` / `ide upload` / `config` / `screenshot` / `compare` 的帮助、退出码、JSON 输出要稳定；`wv upload --help` 保持 SDK 帮助，`wv help upload` 恢复旧 IDE 帮助并警告未来弃用，`wv ide help upload` 不警告。原生上传版本用 `--uv`，原生 preview 不要求上传版本。
+   - 不要让未知命令盲目 passthrough
+5. 常见症状先分诊：
+   - 输出路径不对：查 `srcRoot`、project config、`build.outDir`
+   - 支付宝/抖音原生文件缺失：先核对目标平台描述符、模板/样式扩展名和单目标 `-p <platform>`，不要回退成微信扩展名复制
+   - `.weapp-vite` 类型异常：先跑 `wv prepare`
+   - 页面 / layout 不对：查 `autoRoutes`、`routeRules`、`definePageMeta`
+   - 自动导入异常：查 `autoImportComponents` 与 resolver
+   - i18n 构建失败或模板未翻译：查 locale 文件名、重复/非字符串叶子、default/fallback 是否存在、WXS module 是否重名，以及模板是否通过 `i18n.behavior` 或传统 Page 的 `i18n.page()` 接入；原生无 Vite 项目再检查 `weapp-i18n compile` 产物和 WXS 显式引用
+   - Wot UI / uview-plus / uni-app 组件库异常：同时检查 `weapp.uniApp.include`、resolver 的真实 `resolvedId` / `sourceType: 'wevu-sfc'`，以及目标端条件分支
+   - AI 无法稳定操作：查 `AGENTS.md`、`dist/docs`、CLI 路由、MCP
+   - 分包体积或 HMR 变慢：先跑 `wv analyze --markdown` / `wv analyze --budget-check`，HMR profile 已开启时再跑 `wv analyze --hmr-profile`
+   - 外部体积消费使用小程序 analyze schema v2 的 `artifacts.files`，按模块所属包识别 runtime，不能猜测 chunk 文件名；实际字节与模块估算分开，runtime 预算采用含混合 chunk 的文件上界，unknown 不能作为通过
+   - `preloadRule` 或跨分包跳转：先跑 `wv analyze --preload`，只把宿主导航 API 和可证明路由 binding 作为证据；结合按触发包聚合的实际体积与 2 MB 额度后，再显式配置 `weapp.routeRules.<pattern>.preload`
+   - glass-easel 迁移：WebView glass-easel 默认不启用；开发者工具与真机基础库均不低于 `3.8.12` 时，才由用户在宿主 JSON 成对配置 `componentFramework: 'glass-easel'` 与 `glassEaselWebview: true`，再跑 `wv analyze --glass-easel-check`；低版本保持回退，不要新增重复的 `weapp.glassEasel` 配置
+   - 状态保持 HMR 不生效：先确认生成的应用/页面 JSON 未使用 Skyline；WebView 项目再确认平台为微信、DevTools 开启服务端口与热重载、`compileHotReLoad: true`，并区分安全 JS/Vue 补丁与 CSS/资源/配置的完整重载回退
+   - sourcemap 漂移：检查 CLI `--sourcemap` 透传和构建后 npm、平台 API、shared chunk 重写是否组合原 map，不接受只保留旧 map
+6. 性能问题先比较项目自身相同输入下的 build/HMR profile，再调整已有配置。native AST 扩展属于构建器或插件维护，不是业务项目默认修复路径；相关边界见 `references/native-ast-performance-checklist.md`。
+7. 验证优先使用当前消费项目 `package.json` 中已存在的 typecheck、目标平台 build 和相关测试 scripts。没有对应 script 时，仅在本地工具与包管理器可用后选择其实际支持的调用方式；已安装 `weapp-vite` 的 pnpm 项目例如可用 `pnpm exec wv prepare`、`pnpm exec wv build -p <platform>`。其他包管理器沿用项目方式，不要求切换；缺少测试 script 就报告缺口，不编造命令，也不运行框架仓库的包构建、发布或 E2E。
+8. 新增小程序 runtime API 前，先在目标真实 IDE AppService、基础库和 renderer 中验证存在性与最小调用语义；不要用浏览器、Node、类型声明或 headless 结果替代。若项目选择静态兼容检查，先显式安装 `@weapp-vite/eslint`，再在项目自身 ESLint 配置启用 `miniProgramRuntimeRecommended`；不要假定微信运行时存在 `queueMicrotask`。
+
+## 近期能力决策
+
+- 插件项目先确认 `weapp.pluginRoot`，结构变化必须同时检查主应用 `dist/` 和插件 `dist-plugin/`；不要只验证 host 产物。
+- 状态保持 HMR 仅适用于微信小程序 WebView：需要 DevTools 服务端口、热重载和 `setting.compileHotReLoad: true`。实际 bundle 检测到 Skyline renderer 时，即使显式选择 stateful 也会输出官方兼容性警告、关闭项目私有配置中的热重载并降级 classic；切回 WebView 后不自动重新开启。JS/Vue 安全补丁可保留实例状态；CSS、资源、JSON、配置、边界不兼容或补丁失败时应接受完整构建回退。
+- Web runtime 只验证 Web 语义，不把它当成小程序真机等价环境；请求 globals、URL 和平台 API 兼容问题要分别在目标 runtime 验证。
+- Wevu 平台分支使用编译期常量 `import.meta.env.PLATFORM`（`weapp/alipay/tt/swan/jd/xhs/web`），由现有 `--platform` / `weapp.platform` 自动注入。发布包保留表达式供消费构建替换并删除非目标分支；独立工具链未提供目标时保留动态宿主探测。
+- 平台分支裁剪与能力裁剪分开判断：具名导入支持移除未使用模块，没有创建 router 时不引入首航 guard 状态机；SFC/JSX 根据 Binding Manifest 安装 JSX island 等所需能力，无需额外开关。公开动态工厂保留兼容安装，已使用的 API/fetch 保留动态跨平台 adapter。
+- 小程序单测不使用 jsdom；`@mpcore/test` 只暴露逻辑 WXML 树。测试产物必须通过 `weapp-vite/test` 交给 Vite/Rolldown emit，不能由适配器手写 bundle。
+- uni-app 兼容层默认关闭，只转换项目源码与 `include` 白名单依赖；Wot UI 与 uview-plus 分别以 `@wot-ui/ui@2.3.2`、`uview-plus@3.8.130` 的 npm 发布包 SFC 清单为兼容基线，不把它们泛化成完整 uni-app runtime。
+- 分包、插件、worker 和 lib mode 的性能判断都先看产物结构与 `wv analyze`，再改 chunk/shared 策略。
+- 第三方 `compilerPlugins` 的源码依赖通过转换结果的 `dependencies` 或该次异步转换内的 `context.addWatchFile` 声明；开发快照结束不代表 controller 会话结束。状态保持批次读取 `request.sources` 冻结视图，产物仍由 Vite/Rolldown 写出。完整验收要区分产物、JS 补丁和真实 IDE 计算样式。
+- 主包共享样式优先使用 `weapp.styles` 保持独立产物；默认排除 app，只有显式 `include: 'app.vue'` 等应用入口时才注入 `app.wxss`；`inject: false` 只 emit，独立分包必须通过自己的 `subPackages.<root>.styles` 持有副本。
+- 内置 i18n v1 只支持 `{name}` / `{user.name}` 插值，不提供 ICU、复数、日期/数字格式化或自动 storage 持久化；非微信平台不要启用。
+
+## 参考决策表
+
+- HMR 行为：`references/stateful-hmr-playbook.md`
+- 插件双产物：`references/plugin-build-playbook.md`
+- Web runtime 与 URL：`references/web-runtime-compatibility.md`
+- native AST：`references/native-ast-performance-checklist.md`
+
+## 约束
+
+- 不要在 `srcRoot` 和页面来源没确认前先调 chunk 策略。
+- 不要把 Web runtime 当作小程序真机等价运行时。
+- 项目已有 `AGENTS.md` 时遵循它；版本相关配置优先查 `node_modules/weapp-vite/dist/docs/`，不要要求消费项目具有框架仓库目录。
+- 不要让 `weapp-vite` 和 `weapp-ide-cli` 命令名单分裂。
+- 不要让 `screenshot` / `compare` / `ide logs` 的文件和 JSON 合约漂移。
+- 不要用大量细粒度 JS ↔ Rust 调用替代原本一次 JS AST 遍历；native 加速要先合并通信边界，再用真实 profile 扩大覆盖。
+
+## 输出
+
+只输出本次任务相关内容：配置/代码导致问题的原因、目标平台、实际包版本、最小改动（只读任务列建议）、实际检查与剩余前提。构建结论至少注明实际 `weapp-vite` 版本、沿用的命令和目标产物；失败或撤回的尝试也用一句保留，不只报最终成功。分包/chunk、AI 或 Rust/native 取舍仅在涉及时说明；native 性能结论需跨边界调用与真实 profile 依据。
+
+每项结论用短记录关联：`对象/版本 → 实际命令或动作 → 观察/产物 → 方法、结果、限制`；同一结论可并列记录多种方法，各自结果互不覆盖，建议与已执行分开。缺前提仅阻塞依赖它的操作/验证，继续可达的只读诊断：
+- 自动验证 `passed`：实际命令/断言通过，仅覆盖检查到的配置、类型、产物或运行行为。
+- AI 评估 `passed`：写明评估者、判据和所看材料；不是自动验证，未实际隔离不得称独立评估。
+- 人工确认 `passed`：引用对该具体结果及版本的确认；批准计划不等于确认结果或示例。
+- 未验证 `not-run`：未执行或缺少前提，说明原因。执行过的失败按实际方法记 `failed` 并保留证据，不能改写成未知。构建、类型声明、宿主 callback 均不单独证明页面已显示；静态结构检查也不证明证据真实或任务已执行。
+
+## 完成标记
+
+按本次范围逐项判断，不宣称全能力已验收；未涉及项不适用，失败或未验证项保留：
+- 涉及的 `weapp` 配置、路由/组件来源与输出根明确，既有手工配置保留。
+- 涉及类型时，说明 `.weapp-vite` 支持文件的实际同步结果。
+- 涉及 CLI/IDE/AI 时，命令归属与项目已有入口一致；普通构建不要求接入 AI 工具。
+- 反馈只记录期望/实际、复现与前提、证据和限定范围的提议：确定性错误优先修工具/检查，语义或风格先形成候选示例并交人工审阅。一次偏好留在本次记录；确有复发且取得具体人工规则决定后才提议长期规则，不自动修改源码/全局规则或上传业务数据。
+- Skill 永久修订仅在获授权的作者检出目录进行，不修改包管理器受管的安装副本（如 `node_modules` 内 Skill 或 `.agents/skills` 指向它的链接）。维护用例留在作者仓库，不是消费包内容或使用前提。
+
+## 参考资料
+
+- `references/config-playbook.md`
+- `references/debug-playbook.md`
+- `references/cli-dispatch-playbook.md`
+- `references/ide-command-playbook.md`
+- `references/ide-i18n-config-playbook.md`
+- `references/stateful-hmr-playbook.md`
+- `references/plugin-build-playbook.md`
+- `references/web-runtime-compatibility.md`
+- `references/native-ast-performance-checklist.md`
+
+## 标准 Vite 插件（实验性）
+
+- 配置可导入 `weapp` from `weapp-vite/vite`，以 `plugins: [weapp()]` 激活；继续读取顶层 `weapp`。
+- 当前插件支持单目标微信生产构建与实验性 classic/stateful 开发（`vite dev` / `vp dev`，通过顶层 `weapp.hmr.runtime` 选择），以及原生 `vite build --watch` / `vp build --watch`（生产完整产物，修改宿主配置后需重启命令）；支持微信原生 TS、Wevu Vue 与 React；React 静态 TSX 的 stateful 更新会重建会话，不承诺 hooks 状态保持。已支持独立分包及其宿主监听、子构建配置复用；worker 已进入共享子目标与宿主监听；stateful worker 更新使用完整批次，不承诺线程状态保持。微信插件双产物已接入独立会话与原生 app builder；插件更新不承诺状态保持，双产物暂不支持 `build.write: false`。lib mode 已共用原生声明发布、classic 开发与生产 watch；六平台原生 TS/Vue 支持顶层 `weapp.platform` 单目标选择、classic 与生产 watch；多平台目录式项目配置走原生写出，stateful 仍仅限微信，其他平台真实 IDE 和高级组合单独验收。纯 Web 使用顶层 `weapp.platform: 'web'`，复用同一插件与浏览器宿主；需要既有 Web HTML 入口，不要求小程序项目配置。Web/小程序混合宿主仍待对齐。独立 `wv dev/build` 保留完整能力。
+- 宿主配置是唯一隐式来源；插件不会再次发现 `weapp-vite.config.*`。Vite+ 要按官方 alias 规则统一 `vite` 与 core，不能只看版本号相等。
+- 脚手架的 `--toolchain=wv|vite|vite-plus` 与业务模板独立。生成的 `vite*.config.ts` 显式导入共享配置，按目标单独启用 Web；`prepare/open/upload/mcp` 仍由 `wv` 提供，不能把 `wv --platform` 传给普通宿主。已有 pnpm workspace 必须先统一 Vite+ core 与配套 Vitest override；严格 peer 检查只为固定 core 的 Vite alias 声明版本兼容，脚手架不修改上级工作区。
+- `npm.buildOptions` 的回调接收最终路径，可返回 `false` 跳过包；手工 npm 映射共用 CLI 的主 manifest/镜像语义。产物仍交给原生 emit/write，外部映射保存精确文件归属；`build.write: false` 仅支持宿主输出目录内的 npm 产物。
+- Vitest 配置加载不启动小程序编译。`vp preview`、`vp pack` 不能分别解释为微信预览或小程序组件库构建。
+- 使用前优先读取 `node_modules/weapp-vite/dist/docs/vite-plugin.md` 的支持矩阵，不把后续路线图当成已发布能力。

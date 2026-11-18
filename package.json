@@ -1,15 +1,16 @@
 {
   "name": "z-paging-wevu",
-  "version": "0.3.0",
-  "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "type": "module",
-  "license": "MIT",
+  "version": "0.3.0",
+  "packageManager": "pnpm@11.20.0",
+  "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "author": "littleturtle2333",
+  "license": "MIT",
+  "homepage": "https://paging.weapp.dev/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LittleTurtle2333/z-paging-wevu.git"
   },
-  "homepage": "https://paging.weapp.dev/",
   "bugs": {
     "url": "https://github.com/LittleTurtle2333/z-paging-wevu/issues"
   },
@@ -21,9 +22,10 @@
     "pagination",
     "virtual-list"
   ],
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
-  "types": "./src/index.ts",
+  "sideEffects": [
+    "**/*.vue",
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -47,46 +49,75 @@
       "default": "./resolver.mjs"
     }
   },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "files": [
-    "src",
-    "resolver.mjs",
-    "resolver.d.ts",
+    "LICENSE",
     "README.md",
-    "LICENSE"
+    "resolver.d.ts",
+    "resolver.mjs",
+    "src"
   ],
-  "sideEffects": [
-    "**/*.vue",
-    "**/*.css"
-  ],
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "dev": "vitepress dev docs",
     "dev:docs": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:e2e:devtools": "vitest run --config vitest.devtools.config.ts",
     "test:docs": "pnpm docs:build && node scripts/verify-docs.mjs",
-    "build": "pnpm typecheck && pnpm docs:build",
+    "check:package": "publint --strict",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "build": "pnpm lint && pnpm typecheck && pnpm test && pnpm docs:build",
     "demo:dev": "node demo/scripts/sync-source.mjs && wv dev demo",
     "demo:build": "node demo/scripts/sync-source.mjs && wv build demo && node demo/scripts/verify-demo.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "wevu": ">=7.5.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@icebreakers/eslint-config": "^8.0.20",
+    "@mpcore/test": "^1.2.6",
+    "@mpcore/vitest": "^1.2.6",
     "@types/node": "^24.0.0",
+    "@weapp-vite/eslint": "^0.3.5",
+    "@weapp-vite/miniprogram-automator": "1.5.3",
+    "@wevu/test-utils": "^1.1.4",
+    "eslint": "^10.15.0",
+    "lint-staged": "^17.6.1",
     "miniprogram-api-typings": "^5.2.3",
     "playwright": "^1.64.1",
+    "publint": "^0.3.25",
+    "simple-git-hooks": "^2.14.0",
     "typescript": "^6.0.3",
     "vitepress": "^1.6.4",
+    "vitest": "^5.1.0",
     "vue": "^3.5.13",
     "vue-tsc": "^3.3.12",
+    "weapp-vite": "^7.10.0",
     "wevu": "^7.10.0",
-    "wrangler": "4.158.0",
-    "weapp-vite": "^7.10.0"
+    "wrangler": "4.158.0"
   },
-  "engines": {
-    "node": ">=20.19.0",
-    "pnpm": ">=9"
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
   },
-  "packageManager": "pnpm@11.20.0"
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,vue}": "eslint --fix --no-warn-ignored"
+  }
 }

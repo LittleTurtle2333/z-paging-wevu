@@ -8,3 +8,11 @@ dist/
 *.log
 .tmp/
 coverage/
+HANDOFF-*.md
+.env.local
+
+# AI 编辑器本地配置（skills 统一由 .agents/skills 提交，其余仅本机生效）
+.claude/
+.codebuddy/
+.trae/
+.mcp.json

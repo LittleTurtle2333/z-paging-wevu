@@ -27,14 +27,14 @@ const failures = []
 
 async function waitForServer() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    if (serverError) throw serverError
-    if (serverState) throw new Error(`文档预览服务提前退出：${JSON.stringify(serverState)}\n${serverOutput}`)
+    if (serverError) { throw serverError }
+    if (serverState) { throw new Error(`文档预览服务提前退出：${JSON.stringify(serverState)}\n${serverOutput}`) }
     // VitePress logs this from its listen callback, after binding the exact port.
     // Only test our child's ready server, even if another service owns the port.
     if (readyMessages.some(message => serverOutput.includes(message))) {
       try {
         const response = await fetch(origin, { signal: AbortSignal.timeout(1000) })
-        if (response.ok) return
+        if (response.ok) { return }
       }
       catch {}
     }
@@ -48,7 +48,7 @@ async function waitForExit(timeout) {
   try {
     return await Promise.race([
       serverClosed.then(() => true),
-      new Promise(resolve => { timer = setTimeout(() => resolve(false), timeout) }),
+      new Promise((resolve) => { timer = setTimeout(resolve, timeout, false) }),
     ])
   }
   finally {
@@ -57,12 +57,12 @@ async function waitForExit(timeout) {
 }
 
 function stopServer(signal) {
-  if (!server?.pid) return
+  if (!server?.pid) { return }
   try {
     process.kill(-server.pid, signal)
   }
   catch (error) {
-    if (error.code !== 'ESRCH') throw error
+    if (error.code !== 'ESRCH') { throw error }
   }
 }
 
@@ -72,15 +72,15 @@ try {
     detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
-  server.on('error', error => { serverError = error })
-  serverClosed = new Promise(resolve => {
+  server.on('error', (error) => { serverError = error })
+  serverClosed = new Promise((resolve) => {
     server.once('close', (code, signal) => {
       serverState = { code, signal }
       resolve()
     })
   })
-  server.stdout.on('data', chunk => { serverOutput += chunk })
-  server.stderr.on('data', chunk => { serverOutput += chunk })
+  server.stdout.on('data', (chunk) => { serverOutput += chunk })
+  server.stderr.on('data', (chunk) => { serverOutput += chunk })
   await waitForServer()
 
   browser = await chromium.launch({ headless: true })
@@ -88,13 +88,13 @@ try {
   const errors = []
   const badResponses = []
   page.on('pageerror', error => errors.push(error.message))
-  page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text())
+  page.on('console', (message) => {
+    if (message.type() === 'error') { errors.push(message.text()) }
   })
-  page.on('response', response => {
-    if (response.status() >= 400) badResponses.push(`${response.status()} ${response.url()}`)
+  page.on('response', (response) => {
+    if (response.status() >= 400) { badResponses.push(`${response.status()} ${response.url()}`) }
   })
-  page.on('requestfailed', request => {
+  page.on('requestfailed', (request) => {
     errors.push(`${request.method()} ${request.url()}: ${request.failure()?.errorText}`)
   })
 
@@ -175,8 +175,12 @@ finally {
       stopServer('SIGTERM')
       if (!await waitForExit(5000)) {
         stopServer('SIGKILL')
-        if (!await waitForExit(2000)) throw new Error('文档预览服务收到 SIGKILL 后仍未退出')
-        throw new Error('文档预览服务未及时退出，已使用 SIGKILL 清理')
+        if (!await waitForExit(2000)) {
+          failures.push(new Error('文档预览服务收到 SIGKILL 后仍未退出'))
+        }
+        else {
+          failures.push(new Error('文档预览服务未及时退出，已使用 SIGKILL 清理'))
+        }
       }
     }
     catch (error) {
@@ -185,5 +189,5 @@ finally {
   }
 }
 
-if (failures.length) throw new AggregateError(failures, '文档验收失败')
+if (failures.length) { throw new AggregateError(failures, '文档验收失败') }
 console.log(JSON.stringify(result, null, 2))

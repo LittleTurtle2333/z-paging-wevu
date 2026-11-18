@@ -1,0 +1,4 @@
+interface:
+  display_name: "weapp-tailwindcss 运行时"
+  short_description: "选择运行时包并治理动态 class、转义、merge 与 variants"
+  default_prompt: "使用 $weapp-tailwindcss-runtime 选择运行时包并组合 class。Use $weapp-tailwindcss-runtime for safe component class composition."
