@@ -4,7 +4,11 @@ import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest'
 
 declare module 'vitest' {
   interface ProvidedContext {
-    mpcoreArtifact: { projectPath: string }
+    mpcoreArtifact: {
+      appConfigPath: string
+      miniprogramRootPath: string
+      projectPath: string
+    }
   }
 }
 
