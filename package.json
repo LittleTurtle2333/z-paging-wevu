@@ -1,7 +1,7 @@
 {
   "name": "z-paging-wevu",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "packageManager": "pnpm@11.20.0",
   "description": "面向 weapp-vite + wevu 的 z-paging 兼容分页组件",
   "author": "littleturtle2333",
@@ -85,7 +85,8 @@
     "demo:build": "node demo/scripts/sync-source.mjs && wv build demo && node demo/scripts/verify-demo.mjs"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "wevu": ">=7.5.0"

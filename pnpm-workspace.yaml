@@ -1,4 +1,6 @@
 packages:
+  # 根包本身也是可发布包，必须列进来，否则 changesets 认为它“不在 workspace 中”
+  - .
   - demo
 
 allowBuilds:
